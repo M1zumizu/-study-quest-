@@ -25,6 +25,18 @@ let rankingEnabled = false;
 let soundEnabled = true;
 
 // ==========================================
+// 🆔 プレイヤーID管理（端末ごとに固定）
+// ==========================================
+function getOrCreatePlayerId() {
+    let id = localStorage.getItem('studyQuestPlayerId');
+    if (!id) {
+        id = 'player_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+        localStorage.setItem('studyQuestPlayerId', id);
+    }
+    return id;
+}
+
+// ==========================================
 // ❓ デフォルトクイズ
 // ==========================================
 const defaultQuizList = [
@@ -245,45 +257,66 @@ function renderWeaknessList() {
 }
 
 // ==========================================
-// 🔄 クイズ機能
+// 🔄 クイズ機能（入力判定式）
 // ==========================================
 function loadQuizQuestion() {
     if (activeQuizList.length === 0) {
         document.getElementById('quizQuestionText').innerText = "クイズがありませんピヨ！";
-        document.getElementById('quizAnswerText').innerText = "";
-        document.getElementById('showAnswerBtn').style.display = 'none';
+        document.getElementById('quizResultText').innerText = "";
         return;
     }
 
     const currentQuiz = activeQuizList[currentQuizIndex];
     document.getElementById('quizQuestionText').innerText = currentQuiz.q;
-    document.getElementById('quizAnswerText').innerText = "?????";
-    document.getElementById('showAnswerBtn').style.display = 'block';
-    document.getElementById('verifyButtons').style.display = 'none';
+    
+    const resultText = document.getElementById('quizResultText');
+    if (resultText) resultText.innerText = "";
+
+    const answerInput = document.getElementById('userQuizAnswer');
+    if (answerInput) {
+        answerInput.value = "";
+        answerInput.disabled = false;
+    }
+
+    const submitBtn = document.getElementById('submitAnswerBtn');
+    if (submitBtn) submitBtn.disabled = false;
 }
 
-function revealQuizAnswer(event) {
+function submitQuizAnswer(event) {
     if (event) event.stopPropagation();
-    const currentQuiz = activeQuizList[currentQuizIndex];
-    document.getElementById('quizAnswerText').innerText = "＝ " + currentQuiz.a;
-    document.getElementById('showAnswerBtn').style.display = 'none';
-    document.getElementById('verifyButtons').style.display = 'flex';
-}
 
-function evaluateQuiz(isCorrect, event) {
-    if (event) event.stopPropagation();
-    const currentQuiz = activeQuizList[currentQuizIndex];
+    const answerInput = document.getElementById('userQuizAnswer');
+    const resultDisplay = document.getElementById('quizResultText');
+    const submitBtn = document.getElementById('submitAnswerBtn');
 
-    if (isCorrect) {
+    if (!answerInput || activeQuizList.length === 0) return;
+
+    const userAnswer = answerInput.value.trim().toLowerCase();
+    if (userAnswer === "") return;
+
+    const currentQuiz = activeQuizList[currentQuizIndex];
+    const correctAnswer = currentQuiz.a.trim().toLowerCase();
+
+    answerInput.disabled = true;
+    if (submitBtn) submitBtn.disabled = true;
+
+    if (userAnswer === correctAnswer) {
+        resultDisplay.style.color = "var(--green-neon)";
+        resultDisplay.innerText = "⭕ 正解！ (+20XP)";
         totalExp += 20;
         checkLevelUp();
     } else {
-        insertWeaknessToList(currentQuiz.q + " (答: " + currentQuiz.a + ")");
+        resultDisplay.style.color = "var(--pink-neon)";
+        resultDisplay.innerText = `❌ 残念... 正解は「${currentQuiz.a}」ピヨ`;
+        insertWeaknessToList(`${currentQuiz.q} (答: ${currentQuiz.a})`);
     }
 
     saveData();
-    currentQuizIndex = (currentQuizIndex + 1) % activeQuizList.length;
-    loadQuizQuestion();
+
+    setTimeout(() => {
+        currentQuizIndex = (currentQuizIndex + 1) % activeQuizList.length;
+        loadQuizQuestion();
+    }, 1800);
 }
 
 function toggleQuizForm(event) {
@@ -412,15 +445,10 @@ function saveData() {
 
     try {
         localStorage.setItem('studyQuestData', JSON.stringify(gameState));
-        console.log('Study Quest：データ保存成功', gameState);
-        
-        // ランキング参加ONの場合はFirebaseへ送信
         sendScoreToRanking();
-        
         return true;
     } catch (error) {
         console.error('Study Quest：データ保存失敗', error);
-        alert('データの保存に失敗しました。');
         return false;
     }
 }
@@ -429,7 +457,6 @@ function loadData() {
     const savedData = localStorage.getItem('studyQuestData');
 
     if (!savedData) {
-        console.log('Study Quest：保存データはありません');
         updateGameDisplay();
         renderWeaknessList();
         updateSettingsDisplay();
@@ -454,8 +481,6 @@ function loadData() {
         renderWeaknessList();
         restoreAchievements();
         updateSettingsDisplay();
-
-        console.log('Study Quest：データ読み込み成功', gameState);
     } catch (error) {
         console.error('Study Quest：データ読み込みエラー', error);
     }
@@ -547,6 +572,7 @@ function resetGameData(event) {
     if (!result) return;
 
     localStorage.removeItem('studyQuestData');
+    localStorage.removeItem('studyQuestPlayerId');
     location.reload();
 }
 
@@ -567,15 +593,17 @@ async function sendScoreToRanking() {
         return;
     }
 
-    const { collection, addDoc } = window.firestoreUtils;
+    const { doc, setDoc } = window.firestoreUtils;
+    const playerId = getOrCreatePlayerId();
+
     try {
-        await addDoc(collection(window.db, "rankings"), {
+        await setDoc(doc(window.db, "rankings", playerId), {
             playerName: playerName,
             totalExp: totalExp,
             level: currentLevel,
-            createdAt: new Date()
+            updatedAt: new Date()
         });
-        console.log("スコア送信成功");
+        console.log("スコア上書き送信成功");
     } catch (e) {
         console.error("スコア送信エラー:", e);
     }

@@ -128,15 +128,12 @@
                             <div class="quiz-card-display">
                                 <span class="quiz-tag">Quest 復習</span>
                                 <div class="quiz-question" id="quizQuestionText">読み込み中...</div>
-                                <div class="quiz-answer" id="quizAnswerText">?????</div>
+                                <div class="quiz-answer" id="quizResultText" style="font-size: 1rem; margin-top: 10px;"></div>
                             </div>
                             
-                            <div class="quiz-action-buttons">
-                                <button class="btn-quiz btn-show-answer" id="showAnswerBtn" onclick="revealQuizAnswer(event)">答えを見る</button>
-                                <div class="quiz-verify-buttons" id="verifyButtons" style="display: none;">
-                                    <button class="btn-quiz btn-correct" onclick="evaluateQuiz(true, event)">正解！(+20XP)</button>
-                                    <button class="btn-quiz btn-wrong" onclick="evaluateQuiz(false, event)">間違い(苦手へ)</button>
-                                </div>
+                            <div class="quiz-action-inputs" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                                <input type="text" id="userQuizAnswer" class="input-game" placeholder="答えを入力してください" onkeydown="if(event.key==='Enter') submitQuizAnswer(event)">
+                                <button class="btn-quiz btn-correct" id="submitAnswerBtn" onclick="submitQuizAnswer(event)">回答する！</button>
                             </div>
                         </div>
                     </div>
@@ -232,10 +229,10 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (モジュール経由で初期化＆グローバル設定) -->
+<!-- Firebase SDK (モジュール経由で初期化＆グローバル設定) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB5MpRQ6YgcEG5x3jx5cHjomXolSxG_YQo",
@@ -249,9 +246,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // script.js で扱えるようにグローバル化
+        // doc と setDoc を追加してグローバル化
         window.db = db;
-        window.firestoreUtils = { collection, addDoc, query, orderBy, limit, getDocs };
+        window.firestoreUtils = { collection, doc, setDoc, query, orderBy, limit, getDocs };
     </script>
     <script src="script.js"></script>
 </body>
