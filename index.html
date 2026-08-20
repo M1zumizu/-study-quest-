@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" 
+                content="width=device-width, initial-scale=1.0">
+    <title>Study Quest - ゲーム感覚学習ダッシュボード</title>
+
+    <!-- css/style.css を読み込み -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="view-home">
+
+    <!-- ==========================================
+         🧭 サイドバー (CrazyGamesスタイル)
+         ========================================== -->
+    <div class="sidebar">
+        <div class="logo-area" id="logo-btn" onclick="showView('home')" title="ダッシュボードへ戻る">
+            <span>🐥</span> STUDY QUEST
+        </div>
+
+        <div class="menu-title">MENU</div>
+        <div class="sidebar-menu">
+            <a class="sidebar-item" id="menu-timer" onclick="showView('timer')">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm1-13h-2v6l4.2 4.2 1.4-1.4-3.6-3.6V7z"/></svg>
+                タイマー＆レベル
+            </a>
+            <a class="sidebar-item" id="menu-weakness" onclick="showView('weakness')">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2zm0 8H7v-2h10v2z"/></svg>
+                苦手問題ログ
+            </a>
+            <a class="sidebar-item" id="menu-review" onclick="showView('review')">
+                <svg viewBox="0 0 24 24"><path d="M19 12h2c0-4.963-4.037-9-9-9V1c-3.978 0-7.361 2.585-8.583 6H1.011l3.5 4.5 3.5-4.5H5.432C6.541 4.515 9.043 5 12 5c3.859 0 7 3.141 7 7zm-7 7c-3.859 0-7-3.141-7-7H3c0 4.963 4.037 9 9 9v2c3.978 0 7.361-2.585 8.583-6h2.406l-3.5-4.5-3.5 4.5h2.583C17.459 15.485 14.957 19 12 19z"/></svg>
+                復習クエスト
+            </a>
+            <a class="sidebar-item" id="menu-achievement" onclick="showView('achievement')">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8-8 8zm3.5-11.5L12 12.3l-3.5-3.8-1.5 1.5L12 15l5-5z"/></svg>
+                アチーブメント
+            </a>
+        </div>
+
+            <a class="sidebar-item" id="menu-settings" onclick="showView('settings')">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19.14 12.94a7.49 7.49 0 0 0 .05-.94 7.49 7.49 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39 1a7.28 7.28 0 0 0-1.62-.94L14.5 2.81A.5.5 0 0 0 14 2.5h-4a.5.5 0 0 0-.5.31L9.14 5.35a7.28 7.28 0 0 0-1.62.94l-2.39-1a.5.5 0 0 0-.61.22L4.22 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0-.05.94 7.49 7.49 0 0 0 .05.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .61.22l2.39-1a7.28 7.28 0 0 0 1.62.94l.36 2.54a.5.5 0 0 0 .5.31h4a.5.5 0 0 0 .5-.31l.36-2.54a7.28 7.28 0 0 0 1.62-.94l2.39 1a.5.5 0 0 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5Z"/>
+                </svg>
+                設定
+            </a>
+    </div>
+
+    <!-- ==========================================
+         🖥️ メインコンテンツエリア (右側)
+         ========================================== -->
+    <div class="main-content">
+        <div class="game-container">
+            
+            <header class="game-header">
+                <h1 class="logo-title" onclick="showView('home')">STUDY QUEST</h1>
+                <p class="logo-subtitle">勉強をクエストに変える、高校生のためのゲーミフィケーション</p>
+                
+                <div class="player-status">
+                    <div class="level-badge" id="levelDisplay">Lv. 1</div>
+                    <div class="exp-bar-container">
+                        <div class="exp-bar" id="expFill"></div>
+                    </div>
+                    <div class="exp-text" id="expText">0 / 100 XP</div>
+                </div>
+            </header>
+
+            <div class="dashboard-grid" id="main-grid">
+
+                <!-- ⏱️ 1. タイマー＆レベルアップ -->
+                <div class="quest-card timer-card" id="card-timer" onclick="handleCardClick('timer')">
+                    <button class="back-btn" onclick="goBackToHome(event)">◀ ホームへ戻る</button>
+
+                    <div class="card-header">
+                        <div class="card-icon">⏱️</div>
+                        <h2>タイマー＆レベル</h2>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="timer-display" id="timerDisplay">00:00</div>
+                        <div class="btn-group">
+                            <button class="btn-game btn-start" id="startBtn" onclick="startTimer(event)">クエスト開始！</button>
+                            <button class="btn-game btn-stop" id="stopBtn" onclick="stopTimer(event)">完了（経験値GET！）</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📝 2. 苦手問題の記録 -->
+                <div class="quest-card weakness-card" id="card-weakness" onclick="handleCardClick('weakness')">
+                    <button class="back-btn" onclick="goBackToHome(event)">◀ ホームへ戻る</button>
+
+                    <div class="card-header">
+                        <div class="card-icon">📝</div>
+                        <h2>苦手問題ログ</h2>
+                    </div>
+                    
+                    <div class="card-body" onclick="event.stopPropagation()">
+                        <input type="text" class="input-game" id="weaknessInput" placeholder="例：英単語 obvious、二次関数の公式">
+                        <button class="btn-add" onclick="addWeakness(event)">苦手ハンターに登録！</button>
+
+                        <div class="log-list" id="weaknessList">
+                            <div class="log-item empty-message">
+                                <span>まだ登録された苦手はありませんピヨ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🔄 3. 復習機能 -->
+                <div class="quest-card review-card" id="card-review" onclick="handleCardClick('review')">
+                    <button class="back-btn" onclick="goBackToHome(event)">◀ ホームへ戻る</button>
+
+                    <div class="card-header">
+                        <div class="card-icon">🔄</div>
+                        <h2>復習クエスト</h2>
+                        <button class="btn-mini" onclick="toggleQuizForm(event)">＋作る</button>
+                    </div>
+                    
+                    <div class="card-body" onclick="event.stopPropagation()">
+                        <div class="quiz-creation-form" id="quizFormContainer">
+                            <h4>📝 クイズを自作するピヨ！</h4>
+                            <input type="text" id="customQuestion" class="input-game-mini" placeholder="問題 (例: studyの過去形)">
+                            <input type="text" id="customAnswer" class="input-game-mini" placeholder="答え (例: studied)">
+                            <button class="btn-add-mini" onclick="addCustomQuiz(event)">追加する！</button>
+                        </div>
+                        
+                        <div class="quiz-play-screen">
+                            <div class="quiz-card-display">
+                                <span class="quiz-tag">Quest 復習</span>
+                                <div class="quiz-question" id="quizQuestionText">読み込み中...</div>
+                                <div class="quiz-answer" id="quizAnswerText">?????</div>
+                            </div>
+                            
+                            <div class="quiz-action-buttons">
+                                <button class="btn-quiz btn-show-answer" id="showAnswerBtn" onclick="revealQuizAnswer(event)">答えを見る</button>
+                                <div class="quiz-verify-buttons" id="verifyButtons" style="display: none;">
+                                    <button class="btn-quiz btn-correct" onclick="evaluateQuiz(true, event)">正解！(+20XP)</button>
+                                    <button class="btn-quiz btn-wrong" onclick="evaluateQuiz(false, event)">間違い(苦手へ)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🏆 4. アチーブメント -->
+                <div class="quest-card achievement-card" id="card-achievement" onclick="handleCardClick('achievement')">
+                    <button class="back-btn" onclick="goBackToHome(event)">◀ ホームへ戻る</button>
+
+                    <div class="card-header">
+                        <div class="card-icon">🏆</div>
+                        <h2>アチーブメント</h2>
+                    </div>
+                    
+                    <div class="card-body" onclick="event.stopPropagation()">
+                        <p class="achievement-desc">特定のミッションをクリアしてバッジを解放しよう！</p>
+                        <div class="achievement-grid">
+                            <div class="badge-item" id="badge1" onclick="triggerSteamTest('first')">
+                                <span class="badge-icon">🐣</span>
+                                <span>最初の一歩</span>
+                            </div>
+                            <div class="badge-item" id="badge2" onclick="triggerSteamTest('timer')">
+                                <span class="badge-icon">🔥</span>
+                                <span>集中マスター</span>
+                            </div>
+                            <div class="badge-item" id="badge3" onclick="triggerSteamTest('hero')">
+                                <span class="badge-icon">👑</span>
+                                <span>伝説の勇者</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ⚙️ 5. 設定 -->
+                <div class="quest-card settings-card hidden" id="card-settings" onclick="handleCardClick('settings')">
+                    <button class="back-btn" onclick="goBackToHome(event)">◀ ホームへ戻る</button>
+
+                    <div class="card-header">
+                        <div class="card-icon">⚙️</div>
+                        <h2>設定</h2>
+                    </div>
+
+                    <div class="card-body settings-body" onclick="event.stopPropagation()">
+
+                        <div class="settings-section">
+                            <h3>👤 プレイヤー情報</h3>
+                            <p>ニックネームを設定できます。</p>
+                            <input type="text" id="playerNameInput" class="input-game"
+                                   maxlength="15" placeholder="ニックネームを入力">
+                            <button class="btn-add" onclick="savePlayerName(event)">名前を保存</button>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>🏆 ランキング</h3>
+                            <p id="rankingStatus">現在：ランキングに参加していません</p>
+                            <div class="settings-button-group">
+                                <button class="btn-ranking join"
+                                        onclick="setRankingParticipation(true, event)">
+                                    🏆 参加する
+                                </button>
+                                <button class="btn-ranking leave"
+                                        onclick="setRankingParticipation(false, event)">
+                                    🙈 参加しない
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>🔊 効果音</h3>
+                            <p id="soundStatus">現在：ON</p>
+                            <div class="settings-button-group">
+                                <button class="btn-ranking join"
+                                        onclick="setSoundEnabled(true, event)">
+                                    🔊 ON
+                                </button>
+                                <button class="btn-ranking leave"
+                                        onclick="setSoundEnabled(false, event)">
+                                    🔇 OFF
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section danger-section">
+                            <h3>🗑️ データ管理</h3>
+                            <p>保存されているゲームデータをすべて削除します。</p>
+                            <button class="btn-reset" onclick="resetGameData(event)">
+                                データをリセット
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎮 Steam風アチーブメントポップアップ -->
+    <div class="steam-achievement" id="steamToast">
+        <div class="steam-icon-container">
+            <span class="steam-trophy-icon">🏆</span>
+        </div>
+        <div class="steam-text-container">
+            <div class="steam-alert-title">実績が解除されました！</div>
+            <div class="steam-badge-name" id="steamBadgeName">集中マスター</div>
+        </div>
+    </div>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyB5MpRQ6YgcEG5x3jx5cHjomXolSxG_YQo",
+    authDomain: "study-quest-3b38a.firebaseapp.com",
+    projectId: "study-quest-3b38a",
+    storageBucket: "study-quest-3b38a.firebasestorage.app",
+    messagingSenderId: "18058267368",
+    appId: "1:18058267368:web:0c3ae3a524279b6781975d"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
+    <script src="script.js"></script>
+</body>
+</html>
