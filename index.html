@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-
     <meta charset="UTF-8">
-    <meta name="viewport" 
-                content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Quest - ゲーム感覚学習ダッシュボード</title>
 
     <!-- css/style.css を読み込み -->
@@ -24,7 +22,7 @@
         <div class="menu-title">MENU</div>
         <div class="sidebar-menu">
             <a class="sidebar-item" id="menu-timer" onclick="showView('timer')">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm1-13h-2v6l4.2 4.2 1.4-1.4-3.6-3.6V7z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8-8 8zm1-13h-2v6l4.2 4.2 1.4-1.4-3.6-3.6V7z"/></svg>
                 タイマー＆レベル
             </a>
             <a class="sidebar-item" id="menu-weakness" onclick="showView('weakness')">
@@ -39,14 +37,13 @@
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8-8 8zm3.5-11.5L12 12.3l-3.5-3.8-1.5 1.5L12 15l5-5z"/></svg>
                 アチーブメント
             </a>
-        </div>
-
             <a class="sidebar-item" id="menu-settings" onclick="showView('settings')">
                 <svg viewBox="0 0 24 24">
                     <path d="M19.14 12.94a7.49 7.49 0 0 0 .05-.94 7.49 7.49 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39 1a7.28 7.28 0 0 0-1.62-.94L14.5 2.81A.5.5 0 0 0 14 2.5h-4a.5.5 0 0 0-.5.31L9.14 5.35a7.28 7.28 0 0 0-1.62.94l-2.39-1a.5.5 0 0 0-.61.22L4.22 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0-.05.94 7.49 7.49 0 0 0 .05.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .61.22l2.39-1a7.28 7.28 0 0 0 1.62.94l.36 2.54a.5.5 0 0 0 .5.31h4a.5.5 0 0 0 .5-.31l.36-2.54a7.28 7.28 0 0 0 1.62-.94l2.39 1a.5.5 0 0 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5Z"/>
                 </svg>
                 設定
             </a>
+        </div>
     </div>
 
     <!-- ==========================================
@@ -173,7 +170,6 @@
                     </div>
                 </div>
 
-
                 <!-- ⚙️ 5. 設定 -->
                 <div class="quest-card settings-card hidden" id="card-settings" onclick="handleCardClick('settings')">
                     <button class="back-btn" onclick="goBackToHome(event)">◀ ホームへ戻る</button>
@@ -188,8 +184,7 @@
                         <div class="settings-section">
                             <h3>👤 プレイヤー情報</h3>
                             <p>ニックネームを設定できます。</p>
-                            <input type="text" id="playerNameInput" class="input-game"
-                                   maxlength="15" placeholder="ニックネームを入力">
+                            <input type="text" id="playerNameInput" class="input-game" maxlength="15" placeholder="ニックネームを入力">
                             <button class="btn-add" onclick="savePlayerName(event)">名前を保存</button>
                         </div>
 
@@ -197,38 +192,26 @@
                             <h3>🏆 ランキング</h3>
                             <p id="rankingStatus">現在：ランキングに参加していません</p>
                             <div class="settings-button-group">
-                                <button class="btn-ranking join"
-                                        onclick="setRankingParticipation(true, event)">
-                                    🏆 参加する
-                                </button>
-                                <button class="btn-ranking leave"
-                                        onclick="setRankingParticipation(false, event)">
-                                    🙈 参加しない
-                                </button>
+                                <button class="btn-ranking join" onclick="setRankingParticipation(true, event)">🏆 参加する</button>
+                                <button class="btn-ranking leave" onclick="setRankingParticipation(false, event)">🙈 参加しない</button>
                             </div>
+                            <button class="btn-add" id="load-ranking-btn" onclick="loadRanking()" style="margin-top: 12px;">ランキング表示・更新</button>
+                            <div id="rankingDisplay" style="margin-top: 15px;"></div>
                         </div>
 
                         <div class="settings-section">
                             <h3>🔊 効果音</h3>
                             <p id="soundStatus">現在：ON</p>
                             <div class="settings-button-group">
-                                <button class="btn-ranking join"
-                                        onclick="setSoundEnabled(true, event)">
-                                    🔊 ON
-                                </button>
-                                <button class="btn-ranking leave"
-                                        onclick="setSoundEnabled(false, event)">
-                                    🔇 OFF
-                                </button>
+                                <button class="btn-ranking join" onclick="setSoundEnabled(true, event)">🔊 ON</button>
+                                <button class="btn-ranking leave" onclick="setSoundEnabled(false, event)">🔇 OFF</button>
                             </div>
                         </div>
 
                         <div class="settings-section danger-section">
                             <h3>🗑️ データ管理</h3>
                             <p>保存されているゲームデータをすべて削除します。</p>
-                            <button class="btn-reset" onclick="resetGameData(event)">
-                                データをリセット
-                            </button>
+                            <button class="btn-reset" onclick="resetGameData(event)">データをリセット</button>
                         </div>
 
                     </div>
@@ -249,25 +232,27 @@
         </div>
     </div>
 
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+    <!-- Firebase SDK (モジュール経由で初期化＆グローバル設定) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyB5MpRQ6YgcEG5x3jx5cHjomXolSxG_YQo",
-    authDomain: "study-quest-3b38a.firebaseapp.com",
-    projectId: "study-quest-3b38a",
-    storageBucket: "study-quest-3b38a.firebasestorage.app",
-    messagingSenderId: "18058267368",
-    appId: "1:18058267368:web:0c3ae3a524279b6781975d"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5MpRQ6YgcEG5x3jx5cHjomXolSxG_YQo",
+            authDomain: "study-quest-3b38a.firebaseapp.com",
+            projectId: "study-quest-3b38a",
+            storageBucket: "study-quest-3b38a.firebasestorage.app",
+            messagingSenderId: "18058267368",
+            appId: "1:18058267368:web:0c3ae3a524279b6781975d"
+        };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // script.js で扱えるようにグローバル化
+        window.db = db;
+        window.firestoreUtils = { collection, addDoc, query, orderBy, limit, getDocs };
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -217,6 +217,7 @@ body {
 .weakness-card { border-top: 5px solid var(--pink-neon); }
 .review-card { border-top: 5px solid var(--green-neon); }
 .achievement-card { border-top: 5px solid var(--primary-neon); }
+.settings-card { border-top: 5px solid #a855f7; }
 
 .card-header {
     display: flex;
@@ -231,7 +232,6 @@ body {
 .card-header h2 { font-size: 1.3rem; margin: 0; }
 .card-body { flex-grow: 1; display: flex; flex-direction: column; }
 
-/* 1つだけドカンと表示する _.pdf スタイル */
 .back-btn {
     display: none;
     position: absolute;
@@ -456,6 +456,75 @@ body {
 .view-single .badge-icon { font-size: 2.8rem; }
 .badge-item.unlocked .badge-icon { filter: grayscale(0); opacity: 1; transform: scale(1.1); }
 
+/* ⚙️ 設定画面用スタイル */
+.settings-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.settings-section {
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.settings-section h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    color: var(--primary-neon);
+}
+.settings-section p {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    margin: 0 0 10px 0;
+}
+.settings-button-group {
+    display: flex;
+    gap: 10px;
+}
+.btn-ranking {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #fff;
+}
+.btn-ranking.join { background: #10b981; }
+.btn-ranking.leave { background: #6b7280; }
+
+.danger-section {
+    border-color: rgba(255, 65, 108, 0.3);
+}
+.btn-reset {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* 🏆 ランキング表示スタイル */
+.ranking-list {
+    padding-left: 20px;
+    margin: 0;
+    color: #fff;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.ranking-list li {
+    background: rgba(255,255,255,0.03);
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
 /* Steam風ポップアップ */
 .steam-achievement {
     position: fixed;
@@ -497,7 +566,6 @@ body {
 /* ========================================
    📱 スマホ・タブレット対応
 ======================================== */
-
 @media screen and (max-width: 768px) {
     body { display: block; width: 100%; min-width: 0; overflow-x: hidden; }
 

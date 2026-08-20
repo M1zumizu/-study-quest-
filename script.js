@@ -414,7 +414,7 @@ function saveData() {
         localStorage.setItem('studyQuestData', JSON.stringify(gameState));
         console.log('Study Quest：データ保存成功', gameState);
         
-        // ★ここで安全にランキング送信処理を実行
+        // ランキング参加ONの場合はFirebaseへ送信
         sendScoreToRanking();
         
         return true;
@@ -563,7 +563,6 @@ window.addEventListener('DOMContentLoaded', () => {
 // 🏆 ランキング機能 (Firebase連携)
 // ==========================================
 async function sendScoreToRanking() {
-    // ランキング機能が無効な場合、またはFirebase未準備の場合はスキップ
     if (!rankingEnabled || !window.firestoreUtils || !window.db) {
         return;
     }
@@ -576,34 +575,48 @@ async function sendScoreToRanking() {
             level: currentLevel,
             createdAt: new Date()
         });
+        console.log("スコア送信成功");
     } catch (e) {
         console.error("スコア送信エラー:", e);
     }
 }
 
 async function loadRanking() {
+    const displayElem = document.getElementById('rankingDisplay');
+    if (!displayElem) return;
+
     if (!window.firestoreUtils || !window.db) {
-        alert("ランキング機能の準備が完了していません。");
+        displayElem.innerHTML = "<p style='color:#ef4444; font-size:0.85rem;'>ランキング機能の初期化に失敗しています。</p>";
         return;
     }
+
+    displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.85rem;'>読み込み中...</p>";
 
     const { collection, query, orderBy, limit, getDocs } = window.firestoreUtils;
     try {
         const q = query(collection(window.db, "rankings"), orderBy("totalExp", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
 
+        if (querySnapshot.empty) {
+            displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.85rem;'>ランキングデータがまだありません。</p>";
+            return;
+        }
+
         let html = '<ol class="ranking-list">';
         let rank = 1;
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            html += `<li><strong>${rank}位</strong>: ${data.playerName} - Lv.${data.level} (${data.totalExp} XP)</li>`;
+            const pName = data.playerName || '名無し';
+            const lvl = data.level || 1;
+            const exp = data.totalExp || 0;
+            html += `<li><strong>${rank}位</strong> : ${pName} - Lv.${lvl} (${exp} XP)</li>`;
             rank++;
         });
         html += '</ol>';
 
-        const displayElem = document.getElementById('rankingDisplay');
-        if (displayElem) displayElem.innerHTML = html;
+        displayElem.innerHTML = html;
     } catch (e) {
         console.error("ランキング取得エラー:", e);
+        displayElem.innerHTML = "<p style='color:#ef4444; font-size:0.85rem;'>データの取得に失敗しました。</p>";
     }
 }
