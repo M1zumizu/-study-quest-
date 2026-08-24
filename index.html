@@ -8,151 +8,197 @@
 </head>
 <body class="view-home">
 
-    <!-- 🎮 ゲームヘッダー（Lv・XP表示） -->
-    <header class="game-header">
-        <h1>🎮 Study Quest</h1>
-        <div class="status-container">
-            <span id="levelDisplay">Lv. 1</span>
-            <div class="exp-bar-container">
-                <div id="expFill" class="exp-bar-fill"></div>
-            </div>
-            <span id="expText">0 / 100 XP</span>
+    <!-- 🧭 サイドバー -->
+    <nav class="sidebar">
+        <div class="logo-area" onclick="showView('home')">
+            <span>🎮</span> Study Quest
         </div>
-    </header>
-
-    <div class="main-layout">
-        <!-- 🧭 サイドバー -->
-        <nav class="sidebar">
+        <div class="menu-title">MENU</div>
+        <div class="sidebar-menu">
             <div class="sidebar-item" id="menu-timer" onclick="showView('timer')">⏱️ タイマー</div>
             <div class="sidebar-item" id="menu-weakness" onclick="showView('weakness')">👾 苦手ノート</div>
             <div class="sidebar-item" id="menu-review" onclick="showView('review')">🔄 復習クイズ</div>
             <div class="sidebar-item" id="menu-achievement" onclick="showView('achievement')">🏆 アチーブメント</div>
             <div class="sidebar-item" id="menu-ranking" onclick="showView('ranking')">📊 週間ランキング</div>
             <div class="sidebar-item" id="menu-settings" onclick="showView('settings')">⚙️ 設定</div>
-        </nav>
+        </div>
+    </nav>
 
-        <!-- 🖥️ メイン画面エリア -->
-        <main class="content-area">
+    <!-- 🖥️ 右側メインエリア -->
+    <main class="main-content">
+        <div class="game-container">
 
-            <!-- ⏱️ タイマーカード -->
-            <div id="card-timer" class="card" onclick="handleCardClick('timer')">
-                <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
-                <h2>⏱️ 勉強タイマー</h2>
-                <div id="timerDisplay" class="timer-number">00:00</div>
-                <div class="timer-controls">
-                    <button id="startBtn" onclick="startTimer(event)">スタート</button>
-                    <button id="stopBtn" onclick="stopTimer(event)" style="display:none;">ストップ</button>
+            <!-- 🎮 ヘッダー -->
+            <header class="game-header">
+                <h1 class="logo-title" onclick="showView('home')">STUDY QUEST</h1>
+                <p class="logo-subtitle">〜 勉強をゲーミフィケーション 〜</p>
+                <div class="player-status">
+                    <span class="level-badge" id="levelDisplay">Lv. 1</span>
+                    <div class="exp-bar-container">
+                        <div class="exp-bar" id="expFill"></div>
+                    </div>
+                    <span class="exp-text" id="expText">0 / 100 XP</span>
                 </div>
+            </header>
+
+            <!-- 🎛️ グリッドエリア -->
+            <div class="dashboard-grid">
+
+                <!-- ⏱️ タイマーカード -->
+                <div id="card-timer" class="quest-card timer-card" onclick="handleCardClick('timer')">
+                    <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
+                    <div class="card-header">
+                        <span class="card-icon">⏱️</span>
+                        <h2>勉強タイマー</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="timerDisplay" class="timer-display">00:00</div>
+                        <div class="btn-group">
+                            <button id="startBtn" class="btn-game btn-start" onclick="startTimer(event)">スタート</button>
+                            <button id="stopBtn" class="btn-game btn-stop" onclick="stopTimer(event)">ストップ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 👾 苦手ノートカード -->
+                <div id="card-weakness" class="quest-card weakness-card" onclick="handleCardClick('weakness')">
+                    <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
+                    <div class="card-header">
+                        <span class="card-icon">👾</span>
+                        <h2>苦手ノート</h2>
+                    </div>
+                    <div class="card-body">
+                        <form onsubmit="addWeakness(event)">
+                            <input type="text" id="weaknessInput" class="input-game" placeholder="苦手な問題や単語を入力">
+                            <button type="submit" class="btn-add">追加</button>
+                        </form>
+                        <div id="weaknessList" class="log-list"></div>
+                    </div>
+                </div>
+
+                <!-- 🔄 復習クイズカード -->
+                <div id="card-review" class="quest-card review-card" onclick="handleCardClick('review')">
+                    <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
+                    <div class="card-header">
+                        <span class="card-icon">🔄</span>
+                        <h2>復習クイズ</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="quiz-play-screen">
+                            <p id="quizQuestionText" class="quiz-question">クイズを読み込み中...</p>
+                            <div style="display:flex; gap:8px; margin-top:10px;">
+                                <input type="text" id="userQuizAnswer" class="input-game" style="margin-bottom:0;" placeholder="回答を入力">
+                                <button id="submitAnswerBtn" class="btn-game btn-start" style="flex:0 0 80px;" onclick="submitQuizAnswer(event)">回答</button>
+                            </div>
+                            <p id="quizResultText" class="quiz-answer"></p>
+                        </div>
+                        <button class="btn-mini" style="margin-top:10px;" onclick="toggleQuizForm(event)">＋ 自作クイズを追加</button>
+                        <div id="quizFormContainer" class="quiz-creation-form">
+                            <form onsubmit="addCustomQuiz(event)">
+                                <input type="text" id="customQuestion" class="input-game-mini" placeholder="問題文を入力">
+                                <input type="text" id="customAnswer" class="input-game-mini" placeholder="正解を入力">
+                                <button type="submit" class="btn-add-mini">保存</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🏆 アチーブメントカード -->
+                <div id="card-achievement" class="quest-card achievement-card" onclick="handleCardClick('achievement')">
+                    <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
+                    <div class="card-header">
+                        <span class="card-icon">🏆</span>
+                        <h2>アチーブメント</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="achievement-desc">特定条件クリアで解放！</p>
+                        <div class="achievement-grid">
+                            <div class="badge-item" id="badge1">
+                                <div class="badge-icon">🐣</div>
+                                <div>最初の一歩</div>
+                            </div>
+                            <div class="badge-item" id="badge2">
+                                <div class="badge-icon">🔥</div>
+                                <div>集中マスター</div>
+                            </div>
+                            <div class="badge-item" id="badge3">
+                                <div class="badge-icon">👑</div>
+                                <div>伝説の勇者</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📊 週間ランキングカード -->
+                <div id="card-ranking" class="quest-card settings-card hidden" onclick="handleCardClick('ranking')">
+                    <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
+                    <div class="card-header">
+                        <span class="card-icon">📊</span>
+                        <h2>週間ランキング</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="rankingDisplay">
+                            <p style="color:var(--text-sub); font-size:0.85rem;">読み込み中...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⚙️ 設定カード -->
+                <div id="card-settings" class="quest-card settings-card hidden" onclick="handleCardClick('settings')">
+                    <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
+                    <div class="card-header">
+                        <span class="card-icon">⚙️</span>
+                        <h2>設定</h2>
+                    </div>
+                    <div class="card-body settings-body">
+                        <div class="settings-section">
+                            <h3>ニックネーム</h3>
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" id="playerNameInput" class="input-game" style="margin-bottom:0;" placeholder="名前を入力">
+                                <button class="btn-game btn-start" style="flex:0 0 80px;" onclick="savePlayerName(event)">保存</button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>ランキング設定</h3>
+                            <p id="rankingStatus">現在：設定中...</p>
+                            <div class="settings-button-group">
+                                <button class="btn-ranking join" onclick="setRankingParticipation(true, event)">参加する</button>
+                                <button class="btn-ranking leave" onclick="setRankingParticipation(false, event)">参加しない</button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>効果音</h3>
+                            <p id="soundStatus">現在：ON 🔊</p>
+                            <div class="settings-button-group">
+                                <button class="btn-ranking join" onclick="setSoundEnabled(true, event)">ON</button>
+                                <button class="btn-ranking leave" onclick="setSoundEnabled(false, event)">OFF</button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section danger-section">
+                            <button class="btn-reset" onclick="resetGameData(event)">データ全削除</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+        </div>
+    </main>
 
-            <!-- 👾 苦手ノートカード -->
-            <div id="card-weakness" class="card" onclick="handleCardClick('weakness')">
-                <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
-                <h2>👾 苦手ノート</h2>
-                <form onsubmit="addWeakness(event)" class="input-group">
-                    <input type="text" id="weaknessInput" placeholder="苦手な問題や単語を入力">
-                    <button type="submit">追加</button>
-                </form>
-                <div id="weaknessList" class="log-list"></div>
-            </div>
-
-            <!-- 🔄 復習クイズカード -->
-            <div id="card-review" class="card" onclick="handleCardClick('review')">
-                <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
-                <h2>🔄 復習クイズ</h2>
-                <div class="quiz-box">
-                    <p id="quizQuestionText">クイズを読み込み中...</p>
-                    <div class="input-group">
-                        <input type="text" id="userQuizAnswer" placeholder="回答を入力">
-                        <button id="submitAnswerBtn" onclick="submitQuizAnswer(event)">回答する</button>
-                    </div>
-                    <p id="quizResultText" class="result-text"></p>
-                </div>
-                <button class="sub-btn" onclick="toggleQuizForm(event)">＋ 自作クイズを追加</button>
-                <div id="quizFormContainer" style="display:none;" class="custom-quiz-form">
-                    <form onsubmit="addCustomQuiz(event)">
-                        <input type="text" id="customQuestion" placeholder="問題文を入力">
-                        <input type="text" id="customAnswer" placeholder="正解を入力">
-                        <button type="submit">保存</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 🏆 アチーブメントカード -->
-            <div id="card-achievement" class="card" onclick="handleCardClick('achievement')">
-                <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
-                <h2>🏆 アチーブメント</h2>
-                <div class="badge-grid">
-                    <div class="badge-item" id="badge1">
-                        <div class="badge-icon">🐣</div>
-                        <div class="badge-name">最初の一歩</div>
-                    </div>
-                    <div class="badge-item" id="badge2">
-                        <div class="badge-icon">🔥</div>
-                        <div class="badge-name">集中マスター</div>
-                    </div>
-                    <div class="badge-item" id="badge3">
-                        <div class="badge-icon">👑</div>
-                        <div class="badge-name">伝説の勇者</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 📊 週間ランキングカード -->
-            <div id="card-ranking" class="card hidden" onclick="handleCardClick('ranking')">
-                <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
-                <h2>📊 週間ランキング</h2>
-                <div id="rankingDisplay">
-                    <p style="color:var(--text-sub); font-size:0.85rem;">読み込み中...</p>
-                </div>
-            </div>
-
-            <!-- ⚙️ 設定カード -->
-            <div id="card-settings" class="card hidden" onclick="handleCardClick('settings')">
-                <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
-                <h2>⚙️ 設定</h2>
-                
-                <div class="setting-item">
-                    <label>ニックネーム</label>
-                    <div class="input-group">
-                        <input type="text" id="playerNameInput" placeholder="名前を入力">
-                        <button onclick="savePlayerName(event)">保存</button>
-                    </div>
-                </div>
-
-                <div class="setting-item">
-                    <label>ランキング設定</label>
-                    <p id="rankingStatus">現在：設定中...</p>
-                    <div class="btn-group">
-                        <button onclick="setRankingParticipation(true, event)">参加する</button>
-                        <button onclick="setRankingParticipation(false, event)">参加しない</button>
-                    </div>
-                </div>
-
-                <div class="setting-item">
-                    <label>効果音</label>
-                    <p id="soundStatus">現在：ON 🔊</p>
-                    <div class="btn-group">
-                        <button onclick="setSoundEnabled(true, event)">ON</button>
-                        <button onclick="setSoundEnabled(false, event)">OFF</button>
-                    </div>
-                </div>
-
-                <div class="setting-item danger-zone">
-                    <button class="reset-btn" onclick="resetGameData(event)">データ全削除</button>
-                </div>
-            </div>
-
-        </main>
+    <!-- 🔔 Steam風通知トースト -->
+    <div id="steamToast" class="steam-achievement">
+        <div class="steam-icon-container">
+            <span class="steam-trophy-icon">🏆</span>
+        </div>
+        <div class="steam-text-container">
+            <div class="steam-alert-title">ACHIEVEMENT UNLOCKED</div>
+            <div id="steamBadgeName" class="steam-badge-name">---</div>
+        </div>
     </div>
 
-    <!-- 🔔 アチーブメント解放トースト通知 -->
-    <div id="steamToast" class="steam-toast">
-        <div class="toast-title">🏆 アチーブメント解除！</div>
-        <div id="steamBadgeName" class="toast-body">---</div>
-    </div>
-
-    <!-- JavaScript読み込み -->
+    <!-- JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
