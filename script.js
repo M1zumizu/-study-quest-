@@ -80,7 +80,8 @@ function showView(viewName) {
         document.body.className = 'view-home';
         for (const key in cards) {
             if (!cards[key]) continue;
-            if (key === 'settings') {
+            // ★ key === 'ranking' を追加（ホーム画面ではランキングを隠す）
+            if (key === 'settings' || key === 'ranking') {
                 cards[key].classList.add('hidden');
             } else {
                 cards[key].classList.remove('hidden');
