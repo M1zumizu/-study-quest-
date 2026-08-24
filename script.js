@@ -37,6 +37,17 @@ function getOrCreatePlayerId() {
 }
 
 // ==========================================
+// 🗓️ 週間ID算出ヘルパー関数
+// ==========================================
+function getWeeklyId() {
+    const now = new Date();
+    const startYear = new Date(now.getFullYear(), 0, 1);
+    const pastDays = (now - startYear) / 86400000;
+    const weekNum = Math.ceil((pastDays + startYear.getDay() + 1) / 7);
+    return `${now.getFullYear()}_w${weekNum}`;
+}
+
+// ==========================================
 // ❓ デフォルトクイズ
 // ==========================================
 const defaultQuizList = [
@@ -61,7 +72,8 @@ function showView(viewName) {
         weakness: document.getElementById('card-weakness'),
         review: document.getElementById('card-review'),
         achievement: document.getElementById('card-achievement'),
-        settings: document.getElementById('card-settings')
+        settings: document.getElementById('card-settings'),
+        ranking: document.getElementById('card-ranking')
     };
 
     if (viewName === 'home') {
@@ -96,6 +108,10 @@ function showView(viewName) {
 
     if (viewName === 'settings') {
         updateSettingsDisplay();
+    }
+
+    if (viewName === 'ranking') {
+        loadRanking();
     }
 }
 
@@ -595,15 +611,16 @@ async function sendScoreToRanking() {
 
     const { doc, setDoc } = window.firestoreUtils;
     const playerId = getOrCreatePlayerId();
+    const currentWeek = getWeeklyId();
 
     try {
-        await setDoc(doc(window.db, "rankings", playerId), {
+        await setDoc(doc(window.db, `rankings_${currentWeek}`, playerId), {
             playerName: playerName,
             totalExp: totalExp,
             level: currentLevel,
             updatedAt: new Date()
         });
-        console.log("スコア上書き送信成功");
+        console.log("今週のスコア上書き送信成功");
     } catch (e) {
         console.error("スコア送信エラー:", e);
     }
@@ -621,12 +638,14 @@ async function loadRanking() {
     displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.85rem;'>読み込み中...</p>";
 
     const { collection, query, orderBy, limit, getDocs } = window.firestoreUtils;
+    const currentWeek = getWeeklyId();
+
     try {
-        const q = query(collection(window.db, "rankings"), orderBy("totalExp", "desc"), limit(10));
+        const q = query(collection(window.db, `rankings_${currentWeek}`), orderBy("totalExp", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
-            displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.85rem;'>ランキングデータがまだありません。</p>";
+            displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.85rem;'>今週のランキングデータがまだありません。</p>";
             return;
         }
 
