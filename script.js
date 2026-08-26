@@ -11,6 +11,7 @@ let seconds = 0;
 let timerInterval = null;
 let currentView = 'home';
 let nigateLogs = [];
+let currentRankingType = 'weekly'; // デフォルトはウィークリー
 
 // ==========================================
 // 🏆 アチーブメントデータ
@@ -37,14 +38,24 @@ function getOrCreatePlayerId() {
 }
 
 // ==========================================
-// 🗓️ 週間ID算出ヘルパー関数
+// 🗓️ 日時ID算出ヘルパー関数
 // ==========================================
+function getDailyId() {
+    const now = new Date();
+    return `${now.getFullYear()}_${now.getMonth() + 1}_${now.getDate()}`;
+}
+
 function getWeeklyId() {
     const now = new Date();
     const startYear = new Date(now.getFullYear(), 0, 1);
     const pastDays = (now - startYear) / 86400000;
     const weekNum = Math.ceil((pastDays + startYear.getDay() + 1) / 7);
     return `${now.getFullYear()}_w${weekNum}`;
+}
+
+function getMonthlyId() {
+    const now = new Date();
+    return `${now.getFullYear()}_m${now.getMonth() + 1}`;
 }
 
 // ==========================================
@@ -80,7 +91,6 @@ function showView(viewName) {
         document.body.className = 'view-home';
         for (const key in cards) {
             if (!cards[key]) continue;
-            // ★ key === 'ranking' を追加（ホーム画面ではランキングを隠す）
             if (key === 'settings' || key === 'ranking') {
                 cards[key].classList.add('hidden');
             } else {
@@ -433,19 +443,6 @@ function playAchievementSound() {
     }
 }
 
-function triggerSteamTest(type) {
-    if (type === 'first') {
-        unlockedAchievements['最初の一歩'] = false;
-        unlockAchievement('最初の一歩', 'badge1');
-    } else if (type === 'timer') {
-        unlockedAchievements['集中マスター'] = false;
-        unlockAchievement('集中マスター', 'badge2');
-    } else if (type === 'hero') {
-        unlockedAchievements['伝説の勇者'] = false;
-        unlockAchievement('伝説の勇者', 'badge3');
-    }
-}
-
 // ==========================================
 // 💾 保存・読み込み機能
 // ==========================================
@@ -603,25 +600,32 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// 🏆 ランキング機能 (Firebase連携)
+// 🏆 マルチランキング機能 (Firebase連携)
 // ==========================================
+function switchRankingTab(type, event) {
+    if (event) event.stopPropagation();
+    currentRankingType = type;
+    loadRanking();
+}
+
 async function sendScoreToRanking() {
-    if (!rankingEnabled || !window.firestoreUtils || !window.db) {
-        return;
-    }
+    if (!rankingEnabled || !window.firestoreUtils || !window.db) return;
 
     const { doc, setDoc } = window.firestoreUtils;
     const playerId = getOrCreatePlayerId();
-    const currentWeek = getWeeklyId();
+    const payload = {
+        playerName: playerName,
+        totalExp: totalExp,
+        level: currentLevel,
+        updatedAt: new Date()
+    };
 
     try {
-        await setDoc(doc(window.db, `rankings_${currentWeek}`, playerId), {
-            playerName: playerName,
-            totalExp: totalExp,
-            level: currentLevel,
-            updatedAt: new Date()
-        });
-        console.log("今週のスコア上書き送信成功");
+        await setDoc(doc(window.db, `rankings_daily_${getDailyId()}`, playerId), payload);
+        await setDoc(doc(window.db, `rankings_weekly_${getWeeklyId()}`, playerId), payload);
+        await setDoc(doc(window.db, `rankings_monthly_${getMonthlyId()}`, playerId), payload);
+        await setDoc(doc(window.db, `rankings_overall`, playerId), payload);
+        console.log("全ランキングの更新成功");
     } catch (e) {
         console.error("スコア送信エラー:", e);
     }
@@ -639,14 +643,19 @@ async function loadRanking() {
     displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.85rem;'>読み込み中...</p>";
 
     const { collection, query, orderBy, limit, getDocs } = window.firestoreUtils;
-    const currentWeek = getWeeklyId();
+
+    let collectionName = '';
+    if (currentRankingType === 'daily') collectionName = `rankings_daily_${getDailyId()}`;
+    else if (currentRankingType === 'weekly') collectionName = `rankings_weekly_${getWeeklyId()}`;
+    else if (currentRankingType === 'monthly') collectionName = `rankings_monthly_${getMonthlyId()}`;
+    else collectionName = `rankings_overall`;
 
     try {
-        const q = query(collection(window.db, `rankings_${currentWeek}`), orderBy("totalExp", "desc"), limit(10));
+        const q = query(collection(window.db, collectionName), orderBy("totalExp", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
-            displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.85rem;'>今週のランキングデータがまだありません。</p>";
+            displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.85rem;'>このランキングのデータはまだありません。</p>";
             return;
         }
 
