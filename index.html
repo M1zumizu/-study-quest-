@@ -65,13 +65,28 @@
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
                     <div class="card-header">
                         <span class="card-icon">👾</span>
-                        <h2>苦手ノート</h2>
+                        <h2>苦手ノート (+10XP)</h2>
                     </div>
                     <div class="card-body">
-                        <form onsubmit="addWeakness(event)">
-                            <input type="text" id="weaknessInput" class="input-game" placeholder="苦手な問題や単語を入力">
-                            <button type="submit" class="btn-add">追加</button>
+                        <form onsubmit="addWeakness(event)" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+                            <div style="display:flex; gap:4px;">
+                                <select id="weaknessGenre" class="input-game" style="margin-bottom:0; flex:1;"></select>
+                                <button type="button" class="btn-mini" onclick="promptAddGenre(event)">＋ジャンル</button>
+                                <button type="button" class="btn-mini" onclick="promptManageGenres(event)">✏️編集</button>
+                            </div>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                <input type="text" id="weaknessQuestion" class="input-game" style="flex:1; min-width:140px; margin-bottom:0;" placeholder="問題・暗記項目 (例: 富士山の標高)" required>
+                                <input type="text" id="weaknessAnswer" class="input-game" style="flex:1; min-width:140px; margin-bottom:0;" placeholder="解答 (例: 3776m)" required>
+                                <button type="submit" class="btn-add">追加</button>
+                            </div>
                         </form>
+
+                        <!-- 絞り込みフィルター -->
+                        <div style="margin-bottom:8px; display:flex; gap:6px; align-items:center;">
+                            <span style="font-size:0.8rem; color:var(--text-sub);">絞り込み:</span>
+                            <select id="weaknessFilter" onchange="renderWeaknessList()" class="input-game-mini" style="width:auto; margin:0;"></select>
+                        </div>
+
                         <div id="weaknessList" class="log-list"></div>
                     </div>
                 </div>
@@ -84,6 +99,14 @@
                         <h2>復習クイズ</h2>
                     </div>
                     <div class="card-body">
+                        <!-- クイズジャンル選択 -->
+                        <div style="margin-bottom:10px; display:flex; gap:6px; align-items:center;">
+                            <span style="font-size:0.8rem; color:var(--text-sub);">ジャンル:</span>
+                            <select id="quizGenreFilter" onchange="filterQuizGenre()" class="input-game-mini" style="width:auto; margin:0;"></select>
+                            <button type="button" class="btn-mini" onclick="promptAddGenre(event)">＋ジャンル</button>
+                            <button type="button" class="btn-mini" onclick="promptManageGenres(event)">✏️編集</button>
+                        </div>
+
                         <div class="quiz-play-screen">
                             <p id="quizQuestionText" class="quiz-question">クイズを読み込み中...</p>
                             <div style="display:flex; gap:8px; margin-top:10px;">
@@ -91,14 +114,25 @@
                                 <button id="submitAnswerBtn" class="btn-game btn-start" style="flex:0 0 80px;" onclick="submitQuizAnswer(event)">回答</button>
                             </div>
                             <p id="quizResultText" class="quiz-answer"></p>
+                            <!-- 解答解説表示部分 -->
+                            <p id="quizExplanationText" style="font-size:0.85rem; color:var(--text-sub); margin-top:6px; display:none;"></p>
                         </div>
-                        <button class="btn-mini" style="margin-top:10px;" onclick="toggleQuizForm(event)">＋ 自作クイズを追加</button>
-                        <div id="quizFormContainer" class="quiz-creation-form">
-                            <form onsubmit="addCustomQuiz(event)">
-                                <input type="text" id="customQuestion" class="input-game-mini" placeholder="問題文を入力">
-                                <input type="text" id="customAnswer" class="input-game-mini" placeholder="正解を入力">
-                                <button type="submit" class="btn-add-mini">保存</button>
+
+                        <button class="btn-mini" style="margin-top:10px;" onclick="toggleQuizForm(event)">＋ 自作クイズの管理・追加</button>
+                        
+                        <div id="quizFormContainer" class="quiz-creation-form" style="display:none; margin-top:10px;">
+                            <form onsubmit="addCustomQuiz(event)" style="display:flex; flex-direction:column; gap:6px;">
+                                <div style="display:flex; gap:4px;">
+                                    <select id="customGenre" class="input-game-mini" style="flex:1;"></select>
+                                    <button type="button" class="btn-mini" onclick="promptAddGenre(event)">＋ジャンル</button>
+                                    <button type="button" class="btn-mini" onclick="promptManageGenres(event)">✏️編集</button>
+                                </div>
+                                <input type="text" id="customQuestion" class="input-game-mini" placeholder="問題文を入力" required>
+                                <input type="text" id="customAnswer" class="input-game-mini" placeholder="正解を入力" required>
+                                <input type="text" id="customExplanation" class="input-game-mini" placeholder="解説（任意）">
+                                <button type="submit" class="btn-add-mini">追加・保存</button>
                             </form>
+                            <div id="quizManageList" style="margin-top:10px; max-height:150px; overflow-y:auto;"></div>
                         </div>
                     </div>
                 </div>
@@ -129,27 +163,26 @@
                     </div>
                 </div>
 
-       <!-- 📊 週間ランキングカード -->
-<div id="card-ranking" class="quest-card settings-card hidden" onclick="handleCardClick('ranking')">
-    <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
-    <div class="card-header">
-        <span class="card-icon">📊</span>
-        <h2>ランキング</h2>
-    </div>
-    <div class="card-body">
-        <!-- ⬇️ ここに切り替えタブを追加 -->
-        <div style="display:flex; gap:6px; margin-bottom:12px;">
-            <button class="btn-mini" onclick="switchRankingTab('daily', event)">デイリー</button>
-            <button class="btn-mini" onclick="switchRankingTab('weekly', event)">ウィークリー</button>
-            <button class="btn-mini" onclick="switchRankingTab('monthly', event)">マンスリー</button>
-            <button class="btn-mini" onclick="switchRankingTab('overall', event)">総合</button>
-        </div>
+                <!-- 📊 週間ランキングカード -->
+                <div id="card-ranking" class="quest-card settings-card hidden" onclick="handleCardClick('ranking')">
+                    <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
+                    <div class="card-header">
+                        <span class="card-icon">📊</span>
+                        <h2>ランキング</h2>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex; gap:6px; margin-bottom:12px;">
+                            <button class="btn-mini" onclick="switchRankingTab('daily', event)">デイリー</button>
+                            <button class="btn-mini" onclick="switchRankingTab('weekly', event)">ウィークリー</button>
+                            <button class="btn-mini" onclick="switchRankingTab('monthly', event)">マンスリー</button>
+                            <button class="btn-mini" onclick="switchRankingTab('overall', event)">総合</button>
+                        </div>
 
-        <div id="rankingDisplay">
-            <p style="color:var(--text-sub); font-size:0.85rem;">読み込み中...</p>
-        </div>
-    </div>
-</div>
+                        <div id="rankingDisplay">
+                            <p style="color:var(--text-sub); font-size:0.85rem;">読み込み中...</p>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- ⚙️ 設定カード -->
                 <div id="card-settings" class="quest-card settings-card hidden" onclick="handleCardClick('settings')">
@@ -206,7 +239,7 @@
         </div>
     </div>
 
-<!-- 添え付け：Firebase SDKと初期化スクリプト -->
+    <!-- Firebase SDKと初期化スクリプト -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -221,7 +254,6 @@
             appId: "YOUR_APP_ID"
         };
 
-        // 初期化してscript.jsから使えるようにグローバルへ渡す
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
         window.firestoreUtils = {
@@ -230,9 +262,6 @@
     </script>
 
     <!-- JavaScript読み込み -->
-    <script src="script.js"></script>
-
-    <!-- JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>

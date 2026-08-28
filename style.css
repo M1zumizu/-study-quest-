@@ -608,3 +608,15 @@ body {
     .badge-item { min-width: 0; padding: 10px 3px; font-size: 0.65rem; overflow-wrap: break-word; }
     .steam-achievement { left: 10px; right: 10px; width: auto; }
 }
+
+/* ジャンル選択ドロップダウンの表示縦幅とスクロール調整 */
+select {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* モバイル・PCでの選択時のリスト背景透過防止 */
+select option {
+    background-color: #1e1e2f;
+    color: #ffffff;
+}
