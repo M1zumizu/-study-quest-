@@ -8,7 +8,6 @@
 </head>
 <body class="view-home">
 
-    <!-- 🧭 サイドバー -->
     <nav class="sidebar">
         <div class="logo-area" onclick="showView('home')">
             <span>🎮</span> Study Quest
@@ -19,16 +18,14 @@
             <div class="sidebar-item" id="menu-weakness" onclick="showView('weakness')">👾 苦手ノート</div>
             <div class="sidebar-item" id="menu-review" onclick="showView('review')">🔄 復習クイズ</div>
             <div class="sidebar-item" id="menu-achievement" onclick="showView('achievement')">🏆 アチーブメント</div>
-            <div class="sidebar-item" id="menu-ranking" onclick="showView('ranking')">📊 週間ランキング</div>
+            <div class="sidebar-item" id="menu-ranking" onclick="showView('ranking')">📊 ランキング</div>
             <div class="sidebar-item" id="menu-settings" onclick="showView('settings')">⚙️ 設定</div>
         </div>
     </nav>
 
-    <!-- 🖥️ 右側メインエリア -->
     <main class="main-content">
         <div class="game-container">
 
-            <!-- 🎮 ヘッダー -->
             <header class="game-header">
                 <h1 class="logo-title" onclick="showView('home')">STUDY QUEST</h1>
                 <p class="logo-subtitle">〜 勉強を継続させるためのゲーミフィケーション 〜</p>
@@ -41,10 +38,8 @@
                 </div>
             </header>
 
-            <!-- 🎛️ グリッドエリア -->
             <div class="dashboard-grid">
 
-                <!-- ⏱️ タイマーカード -->
                 <div id="card-timer" class="quest-card timer-card" onclick="handleCardClick('timer')">
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
                     <div class="card-header">
@@ -60,7 +55,6 @@
                     </div>
                 </div>
 
-                <!-- 👾 苦手ノートカード -->
                 <div id="card-weakness" class="quest-card weakness-card" onclick="handleCardClick('weakness')">
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
                     <div class="card-header">
@@ -81,7 +75,6 @@
                             </div>
                         </form>
 
-                        <!-- 絞り込みフィルター -->
                         <div style="margin-bottom:8px; display:flex; gap:6px; align-items:center;">
                             <span style="font-size:0.8rem; color:var(--text-sub);">絞り込み:</span>
                             <select id="weaknessFilter" onchange="renderWeaknessList()" class="input-game-mini" style="width:auto; margin:0;"></select>
@@ -91,7 +84,6 @@
                     </div>
                 </div>
 
-                <!-- 🔄 復習クイズカード -->
                 <div id="card-review" class="quest-card review-card" onclick="handleCardClick('review')">
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
                     <div class="card-header">
@@ -99,7 +91,6 @@
                         <h2>復習クイズ</h2>
                     </div>
                     <div class="card-body">
-                        <!-- クイズジャンル選択 -->
                         <div style="margin-bottom:10px; display:flex; gap:6px; align-items:center;">
                             <span style="font-size:0.8rem; color:var(--text-sub);">ジャンル:</span>
                             <select id="quizGenreFilter" onchange="filterQuizGenre()" class="input-game-mini" style="width:auto; margin:0;"></select>
@@ -114,7 +105,6 @@
                                 <button id="submitAnswerBtn" class="btn-game btn-start" style="flex:0 0 80px;" onclick="submitQuizAnswer(event)">回答</button>
                             </div>
                             <p id="quizResultText" class="quiz-answer"></p>
-                            <!-- 解答解説表示部分 -->
                             <p id="quizExplanationText" style="font-size:0.85rem; color:var(--text-sub); margin-top:6px; display:none;"></p>
                         </div>
 
@@ -137,7 +127,6 @@
                     </div>
                 </div>
 
-                <!-- 🏆 アチーブメントカード -->
                 <div id="card-achievement" class="quest-card achievement-card" onclick="handleCardClick('achievement')">
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
                     <div class="card-header">
@@ -163,7 +152,6 @@
                     </div>
                 </div>
 
-                <!-- 📊 週間ランキングカード -->
                 <div id="card-ranking" class="quest-card settings-card hidden" onclick="handleCardClick('ranking')">
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
                     <div class="card-header">
@@ -172,10 +160,10 @@
                     </div>
                     <div class="card-body">
                         <div style="display:flex; gap:6px; margin-bottom:12px;">
-                            <button class="btn-mini" onclick="switchRankingTab('daily', event)">デイリー</button>
-                            <button class="btn-mini" onclick="switchRankingTab('weekly', event)">ウィークリー</button>
-                            <button class="btn-mini" onclick="switchRankingTab('monthly', event)">マンスリー</button>
-                            <button class="btn-mini" onclick="switchRankingTab('overall', event)">総合</button>
+                            <button id="tab-daily" class="btn-mini active" onclick="switchRankingTab('daily', event)">デイリー</button>
+                            <button id="tab-weekly" class="btn-mini" onclick="switchRankingTab('weekly', event)">ウィークリー</button>
+                            <button id="tab-monthly" class="btn-mini" onclick="switchRankingTab('monthly', event)">マンスリー</button>
+                            <button id="tab-overall" class="btn-mini" onclick="switchRankingTab('overall', event)">総合</button>
                         </div>
 
                         <div id="rankingDisplay">
@@ -184,7 +172,6 @@
                     </div>
                 </div>
 
-                <!-- ⚙️ 設定カード -->
                 <div id="card-settings" class="quest-card settings-card hidden" onclick="handleCardClick('settings')">
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
                     <div class="card-header">
@@ -228,7 +215,6 @@
         </div>
     </main>
 
-    <!-- 🔔 Steam風通知トースト -->
     <div id="steamToast" class="steam-achievement">
         <div class="steam-icon-container">
             <span class="steam-trophy-icon">🏆</span>
@@ -239,7 +225,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDKと初期化スクリプト -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -261,7 +246,6 @@
         };
     </script>
 
-    <!-- JavaScript読み込み -->
     <script src="script.js"></script>
 </body>
 </html>

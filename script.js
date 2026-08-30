@@ -11,7 +11,7 @@ let seconds = 0;
 let timerInterval = null;
 let currentView = 'home';
 let nigateLogs = [];
-let currentRankingType = 'weekly';
+let currentRankingType = 'daily';
 
 // 🏷️ カスタムジャンル初期データ（サンプル問題＋指定ジャンル）
 let customGenres = ["サンプル問題", "国語", "数学＆算数", "英語", "理科", "社会", "情報"];
@@ -71,7 +71,7 @@ function getMonthlyId() {
 }
 
 // ==========================================
-// 🏷️ カスタムジャンル管理機能（追加＆編集）
+// 🏷️ カスタムジャンル管理機能（追加＆編集・削除）
 // ==========================================
 function promptAddGenre(event) {
     if (event) event.stopPropagation();
@@ -903,6 +903,20 @@ window.addEventListener('DOMContentLoaded', () => {
 function switchRankingTab(type, event) {
     if (event) event.stopPropagation();
     currentRankingType = type;
+
+    // タブのボタンのハイライト切替
+    const tabs = ['daily', 'weekly', 'monthly', 'overall'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (btn) {
+            if (t === type) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+    });
+
     loadRanking();
 }
 
@@ -918,14 +932,20 @@ async function sendScoreToRanking() {
         updatedAt: new Date()
     };
 
-    try {
-        await setDoc(doc(window.db, `rankings_daily_${getDailyId()}`, playerId), payload);
-        await setDoc(doc(window.db, `rankings_weekly_${getWeeklyId()}`, playerId), payload);
-        await setDoc(doc(window.db, `rankings_monthly_${getMonthlyId()}`, playerId), payload);
-        await setDoc(doc(window.db, `rankings_overall`, playerId), payload);
-        console.log("全ランキングの更新成功");
-    } catch (e) {
-        console.error("スコア送信エラー:", e);
+    // それぞれのランキング宛に個別に送信（1つでエラーが起きても他に影響させない）
+    const targets = [
+        `rankings_daily_${getDailyId()}`,
+        `rankings_weekly_${getWeeklyId()}`,
+        `rankings_monthly_${getMonthlyId()}`,
+        `rankings_overall`
+    ];
+
+    for (const targetCol of targets) {
+        try {
+            await setDoc(doc(window.db, targetCol, playerId), payload);
+        } catch (e) {
+            console.error(`[${targetCol}] へのスコア送信エラー:`, e);
+        }
     }
 }
 
@@ -957,14 +977,14 @@ async function loadRanking() {
             return;
         }
 
-        let html = '<ol class="ranking-list">';
+        let html = '<ol class="ranking-list" style="padding-left:20px; margin:0;">';
         let rank = 1;
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             const pName = data.playerName || '名無し';
             const lvl = data.level || 1;
             const exp = data.totalExp || 0;
-            html += `<li><strong>${rank}位</strong> : ${pName} - Lv.${lvl} (${exp} XP)</li>`;
+            html += `<li style="margin-bottom:6px; font-size:0.9rem;"><strong>${rank}位</strong> : ${pName} - Lv.${lvl} (${exp} XP)</li>`;
             rank++;
         });
         html += '</ol>';
@@ -972,6 +992,6 @@ async function loadRanking() {
         displayElem.innerHTML = html;
     } catch (e) {
         console.error("ランキング取得エラー:", e);
-        displayElem.innerHTML = "<p style='color:#ef4444; font-size:0.85rem;'>データの取得に失敗しました。</p>";
+        displayElem.innerHTML = "<p style='color:#ef4444; font-size:0.85rem;'>データの取得に失敗しました。<br>(コンソールエラーを確認してください)</p>";
     }
 }
