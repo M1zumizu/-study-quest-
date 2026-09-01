@@ -773,11 +773,7 @@ function renderQuizManageList() {
 // ==========================================
 // 🏆 アチーブメント描画・管理機能
 // ==========================================
-// ==========================================
-// 🏆 アチーブメント描画・管理機能（修正版）
-// ==========================================
 function renderAchievements() {
-    // 描画先コンテナのID表記ゆれ・HTML構造に柔軟に対応
     const container = document.getElementById('achievementList') || 
                       document.getElementById('achievementContainer') ||
                       document.getElementById('badgeContainer') ||
@@ -785,7 +781,6 @@ function renderAchievements() {
 
     if (!container) return;
 
-    // カードタイトル等を保護しつつ描画領域を確保
     let listArea = container.querySelector('.achievement-list-inner');
     if (!listArea) {
         if (container.id === 'card-achievement') {
@@ -801,7 +796,6 @@ function renderAchievements() {
     listArea.innerHTML = "";
 
     achievementsMaster.forEach(item => {
-        // ID(badge1等) と 名前("最初の一歩"等) の両方で獲得状況を判定
         const isUnlocked = unlockedAchievements[item.id] === true || unlockedAchievements[item.name] === true;
 
         const div = document.createElement('div');
@@ -837,37 +831,13 @@ function renderAchievements() {
     });
 }
 
+// 🏆 アチーブメント解放処理（統合・重複解消済み）
 function unlockAchievement(name, badgeId) {
-    // 重複解放防止チェック（IDと名前の両方を検証）
     if ((badgeId && unlockedAchievements[badgeId]) || unlockedAchievements[name]) return;
 
-    // 保存用にIDと名前の両方に解放フラグをセット
     if (badgeId) unlockedAchievements[badgeId] = true;
     if (name) unlockedAchievements[name] = true;
 
-    saveData();
-    renderAchievements();
-
-    if (soundEnabled) {
-        playAchievementSound();
-    }
-
-    const toast = document.getElementById('steamToast');
-    const nameDisplay = document.getElementById('steamBadgeName');
-
-    if (toast && nameDisplay) {
-        nameDisplay.innerText = name;
-        toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 4000);
-    }
-}
-
-function unlockAchievement(name, badgeId) {
-    if (unlockedAchievements[name]) return;
-
-    unlockedAchievements[name] = true;
     saveData();
     renderAchievements();
 
@@ -1197,5 +1167,126 @@ async function loadRanking() {
     } catch (e) {
         console.error("ランキング取得エラー:", e);
         displayElem.innerHTML = "<p style='color:#ef4444; font-size:0.85rem;'>データの取得に失敗しました。<br>(コンソールエラーを確認してください)</p>";
+    }
+}
+
+// ==========================================
+// 🌐 みんなの問題（クイズ共有機能）
+// ==========================================
+
+// 自作クイズを「みんなの問題」へ共有する
+async function shareQuizToPublic(quizId, event) {
+    if (event) event.stopPropagation();
+
+    if (!window.firestoreUtils || !window.db) {
+        alert("データベースの接続に失敗しています。");
+        return;
+    }
+
+    const quiz = activeQuizList.find(q => q.id === quizId);
+    if (!quiz) return;
+
+    if (quiz.isSample || quiz.genre === "サンプル問題") {
+        alert("サンプル問題は共有できません。");
+        return;
+    }
+
+    const confirmShare = confirm(`「${quiz.q}」をみんなの問題に共有しますか？`);
+    if (!confirmShare) return;
+
+    try {
+        const { collection, addDoc } = window.firestoreUtils;
+        await addDoc(collection(window.db, "shared_quizzes"), {
+            genre: quiz.genre || "その他",
+            q: quiz.q,
+            a: quiz.a,
+            explanation: quiz.explanation || "",
+            authorName: playerName || "名無し",
+            createdAt: new Date().toISOString()
+        });
+
+        alert("「みんなの問題」に共有しました！");
+        loadPublicQuizzes(); // 一覧更新
+    } catch (e) {
+        console.error("クイズ共有エラー:", e);
+        alert("共有に失敗しました。");
+    }
+}
+
+// 共有された「みんなの問題」を取得して表示する
+async function loadPublicQuizzes() {
+    const displayElem = document.getElementById('publicQuizList');
+    if (!displayElem) return;
+
+    if (!window.firestoreUtils || !window.db) {
+        displayElem.innerHTML = "<p style='color:#ef4444; font-size:0.8rem;'>接続エラーが発生しています。</p>";
+        return;
+    }
+
+    displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.8rem;'>みんなの問題を読み込み中...</p>";
+
+    try {
+        const { collection, query, orderBy, limit, getDocs } = window.firestoreUtils;
+        const q = query(collection(window.db, "shared_quizzes"), orderBy("createdAt", "desc"), limit(20));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            displayElem.innerHTML = "<p style='color:var(--text-sub); font-size:0.8rem;'>まだ共有された問題はありません。</p>";
+            return;
+        }
+
+        displayElem.innerHTML = "";
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const quizDataStr = encodeURIComponent(JSON.stringify(data));
+
+            const div = document.createElement('div');
+            div.style.cssText = 'background:rgba(255,255,255,0.05); padding:8px 10px; margin-bottom:6px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(255,255,255,0.1);';
+            div.innerHTML = `
+                <div style="flex:1; margin-right:8px; font-size:0.8rem; overflow:hidden;">
+                    <div style="font-size:0.7rem; color:var(--green-neon, #4ade80);">${data.genre} | 作成者: ${data.authorName}</div>
+                    <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><strong>Q. ${data.q}</strong></div>
+                </div>
+                <button onclick="importPublicQuiz('${quizDataStr}', event)" style="font-size:0.7rem; background:var(--green-neon, #4ade80); color:#000; font-weight:bold; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;">マイ問題に追加</button>
+            `;
+            displayElem.appendChild(div);
+        });
+    } catch (e) {
+        console.error("みんなの問題取得エラー:", e);
+        displayElem.innerHTML = "<p style='color:#ef4444; font-size:0.8rem;'>データの読み込みに失敗しました。</p>";
+    }
+}
+
+// 共有された問題を自分のクイズリストに取り込む
+function importPublicQuiz(quizDataStr, event) {
+    if (event) event.stopPropagation();
+
+    try {
+        const data = JSON.parse(decodeURIComponent(quizDataStr));
+
+        // 重複チェック
+        const isExist = activeQuizList.some(q => q.q === data.q && q.a === data.a);
+        if (isExist) {
+            alert("この問題は既にあなたの問題リストに入っています！");
+            return;
+        }
+
+        const newQuiz = {
+            id: Date.now(),
+            genre: data.genre || "その他",
+            q: data.q,
+            a: data.a,
+            explanation: data.explanation ? `${data.explanation} (作成者: ${data.authorName})` : `作成者: ${data.authorName}`
+        };
+
+        activeQuizList.unshift(newQuiz);
+        saveData();
+        renderQuizManageList();
+        loadQuizQuestion();
+
+        alert(`「${data.q}」をマイ問題に追加しました！`);
+    } catch (e) {
+        console.error("取り込みエラー:", e);
     }
 }
