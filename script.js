@@ -758,12 +758,18 @@ function renderQuizManageList() {
         const div = document.createElement('div');
         div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; margin-bottom:4px; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px;';
         
+        // 自作問題の横に「共有」ボタンを追加
         const actionHtml = isSample 
             ? `<span style="font-size:0.65rem; color:#888;">固定</span>`
-            : `<button onclick="deleteCustomQuiz(${q.id || 0}, event)" style="font-size:0.65rem; color:#ef4444; border:1px solid #ef4444; background:none; border-radius:3px; cursor:pointer; padding:2px 4px;">削除</button>`;
+            : `
+                <div style="display:flex; gap:4px;">
+                    <button onclick="shareQuizToPublic(${q.id || 0}, event)" style="font-size:0.65rem; color:var(--green-neon, #4ade80); border:1px solid var(--green-neon, #4ade80); background:none; border-radius:3px; cursor:pointer; padding:2px 4px;">共有</button>
+                    <button onclick="deleteCustomQuiz(${q.id || 0}, event)" style="font-size:0.65rem; color:#ef4444; border:1px solid #ef4444; background:none; border-radius:3px; cursor:pointer; padding:2px 4px;">削除</button>
+                </div>
+              `;
 
         div.innerHTML = `
-            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:75%;">[${q.genre || '国語'}] ${q.q}</span>
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:65%;">[${q.genre || '国語'}] ${q.q}</span>
             ${actionHtml}
         `;
         container.appendChild(div);
