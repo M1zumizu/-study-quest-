@@ -390,7 +390,7 @@ function addWeakness(event) {
         id: sharedId,
         genre: genre,
         text: `${qVal} | ${aVal}`,
-        hidden: false
+        hidden: true // 伏字（非表示）をデフォルトに設定
     };
     nigateLogs.unshift(newItem);
 
@@ -403,7 +403,9 @@ function addWeakness(event) {
     };
     activeQuizList.unshift(newQuiz);
 
-    addExpWithPeriod(10);
+    // 🎁 苦手ノート書き込み時のXP加算
+    const earnedExp = 15; 
+    addExpWithPeriod(earnedExp);
 
     renderWeaknessList();
     loadQuizQuestion();
@@ -419,7 +421,7 @@ function insertWeaknessToList(text, genre = "国語") {
         id: Date.now(),
         genre: genre,
         text: text,
-        hidden: false
+        hidden: true // 自動登録時も伏字をデフォルトに設定
     };
     nigateLogs.unshift(newItem);
     renderWeaknessList();
@@ -506,7 +508,7 @@ function renderWeaknessList() {
         const id = typeof item === 'object' ? (item.id || index) : index;
         const genre = typeof item === 'object' ? (item.genre || "国語") : "国語";
         const text = typeof item === 'object' ? item.text : item;
-        const hidden = typeof item === 'object' ? item.hidden : false;
+        const hidden = typeof item === 'object' ? (item.hidden !== undefined ? item.hidden : true) : true;
 
         let rawText = text;
 
