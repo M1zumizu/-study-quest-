@@ -125,15 +125,20 @@
                             <div id="quizManageList" style="margin-top:10px; max-height:150px; overflow-y:auto;"></div>
                         </div>
 
-                        <!-- みんなの問題エリア -->
-<div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <span style="font-weight: bold; font-size: 0.9rem;">🌐 みんなの問題</span>
-        <button onclick="loadPublicQuizzes()" style="font-size:0.75rem; background:none; border:1px solid var(--green-neon, #4ade80); color:var(--green-neon, #4ade80); border-radius:4px; padding:3px 8px; cursor:pointer;">🔄 更新</button>
-    </div>
-    <!-- ここに共有された問題が一覧表示されます -->
-    <div id="publicQuizList"></div>
-</div>
+　　　　　　　　<!--みんなの問題エリア -->
+                        <div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-weight: bold; font-size: 0.9rem;">🌐 みんなの問題</span>
+                                <button onclick="loadPublicQuizzes()" style="font-size:0.75rem; background:none; border:1px solid var(--green-neon, #4ade80); color:var(--green-neon, #4ade80); border-radius:4px; padding:3px 8px; cursor:pointer;">🔄 更新</button>
+                            </div>
+                            <!-- ここに共有された問題が一覧表示されます -->
+                            <div id="publicQuizList"></div>
+                        </div>
+
+                    </div> <!-- ◀️ 不足していた card-body の閉じタグ -->
+                </div> <!-- ◀️ 不足していた card-review の閉じタグ -->
+
+                <div id="card-achievement" class="quest-card achievement-card" onclick="handleCardClick('achievement')">
 
                 <div id="card-achievement" class="quest-card achievement-card" onclick="handleCardClick('achievement')">
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
@@ -233,24 +238,23 @@
         </div>
     </div>
 
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ⚠️ ご自身のFirebaseプロジェクトの設定情報に書き換えてください
         const firebaseConfig = {
-         apiKey: "AIzaSyB5MpRQ6YgcEG5x3jx5cHjomXolSxG_YQo",
-         authDomain: "study-quest-3b38a.firebaseapp.com",
-         projectId: "study-quest-3b38a",
-         storageBucket: "study-quest-3b38a.firebasestorage.app",
-         messagingSenderId: "18058267368",
-         appId: "1:18058267368:web:0c3ae3a524279b6781975d"
-       };
+            apiKey: "AIzaSyB5MpRQ6YgcEG5x3jx5cHjomXolSxG_YQo",
+            authDomain: "study-quest-3b38a.firebaseapp.com",
+            projectId: "study-quest-3b38a",
+            storageBucket: "study-quest-3b38a.firebasestorage.app",
+            messagingSenderId: "18058267368",
+            appId: "1:18058267368:web:0c3ae3a524279b6781975d"
+        };
 
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
         window.firestoreUtils = {
-            collection, query, orderBy, limit, getDocs, doc, setDoc
+            collection, query, orderBy, limit, getDocs, doc, setDoc, addDoc, deleteDoc
         };
     </script>
 

@@ -1181,7 +1181,7 @@ async function loadRanking() {
 }
 
 // ==========================================
-// 🌐 みんなの問題（クイズ共有機能）
+// 🌐 みんなの問題（クイズ共有・共有解除機能）
 // ==========================================
 
 // 自作クイズを「みんなの問題」へ共有する
@@ -1206,20 +1206,42 @@ async function shareQuizToPublic(quizId, event) {
 
     try {
         const { collection, addDoc } = window.firestoreUtils;
+        const myPlayerId = getOrCreatePlayerId();
+
         await addDoc(collection(window.db, "shared_quizzes"), {
             genre: quiz.genre || "その他",
             q: quiz.q,
             a: quiz.a,
             explanation: quiz.explanation || "",
             authorName: playerName || "名無し",
+            authorId: myPlayerId, // 投稿者の識別用ID
             createdAt: new Date().toISOString()
         });
 
         alert("「みんなの問題」に共有しました！");
-        loadPublicQuizzes(); // 一覧更新
+        loadPublicQuizzes();
     } catch (e) {
         console.error("クイズ共有エラー:", e);
         alert("共有に失敗しました。");
+    }
+}
+
+// 共有された問題を削除（共有解除・非共有にする）
+async function unshareQuizFromPublic(docId, event) {
+    if (event) event.stopPropagation();
+
+    const confirmDelete = confirm("この問題を「みんなの問題」から削除（非共有）にしますか？");
+    if (!confirmDelete) return;
+
+    try {
+        const { doc, deleteDoc } = window.firestoreUtils;
+        await deleteDoc(doc(window.db, "shared_quizzes", docId));
+
+        alert("共有を解除しました。");
+        loadPublicQuizzes();
+    } catch (e) {
+        console.error("共有解除エラー:", e);
+        alert("共有の解除に失敗しました。");
     }
 }
 
@@ -1246,19 +1268,28 @@ async function loadPublicQuizzes() {
         }
 
         displayElem.innerHTML = "";
+        const myPlayerId = getOrCreatePlayerId();
 
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const docId = docSnap.id;
             const quizDataStr = encodeURIComponent(JSON.stringify(data));
+            const isMyPost = data.authorId === myPlayerId; // 自分の投稿かどうか判定
 
             const div = document.createElement('div');
             div.style.cssText = 'background:rgba(255,255,255,0.05); padding:8px 10px; margin-bottom:6px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(255,255,255,0.1);';
+            
+            // 自分の投稿であれば「共有解除」ボタンを表示
+            const actionButtonHtml = isMyPost
+                ? `<button onclick="unshareQuizFromPublic('${docId}', event)" style="font-size:0.7rem; background:#ef4444; color:#fff; font-weight:bold; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;">共有解除</button>`
+                : `<button onclick="importPublicQuiz('${quizDataStr}', event)" style="font-size:0.7rem; background:var(--green-neon, #4ade80); color:#000; font-weight:bold; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;">マイ問題に追加</button>`;
+
             div.innerHTML = `
                 <div style="flex:1; margin-right:8px; font-size:0.8rem; overflow:hidden;">
-                    <div style="font-size:0.7rem; color:var(--green-neon, #4ade80);">${data.genre} | 作成者: ${data.authorName}</div>
+                    <div style="font-size:0.7rem; color:var(--green-neon, #4ade80);">${data.genre} | 作成者: ${data.authorName}${isMyPost ? ' (あなた)' : ''}</div>
                     <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><strong>Q. ${data.q}</strong></div>
                 </div>
-                <button onclick="importPublicQuiz('${quizDataStr}', event)" style="font-size:0.7rem; background:var(--green-neon, #4ade80); color:#000; font-weight:bold; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;">マイ問題に追加</button>
+                ${actionButtonHtml}
             `;
             displayElem.appendChild(div);
         });
