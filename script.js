@@ -281,6 +281,10 @@ function showView(viewName) {
     if (viewName === 'ranking') {
         loadRanking();
     }
+
+    if (viewName === 'review') {
+        loadPublicQuizzes(); // ✨ この1行を追加
+    }
 }
 
 function handleCardClick(cardName) {

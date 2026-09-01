@@ -125,16 +125,15 @@
                             <div id="quizManageList" style="margin-top:10px; max-height:150px; overflow-y:auto;"></div>
                         </div>
 
-                        <!-- 🌐 みんなの問題（共有クイズ一覧） -->
-                        <div style="margin-top:16px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <span style="font-size:0.85rem; font-weight:bold;">🌐 みんなの問題</span>
-                                <button class="btn-mini" onclick="loadPublicQuizzes()">🔄 更新</button>
-                            </div>
-                            <div id="publicQuizList" style="max-height:180px; overflow-y:auto;"></div>
-                        </div>
-                    </div>
-                </div>
+                        <!-- みんなの問題エリア -->
+<div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-weight: bold; font-size: 0.9rem;">🌐 みんなの問題</span>
+        <button onclick="loadPublicQuizzes()" style="font-size:0.75rem; background:none; border:1px solid var(--green-neon, #4ade80); color:var(--green-neon, #4ade80); border-radius:4px; padding:3px 8px; cursor:pointer;">🔄 更新</button>
+    </div>
+    <!-- ここに共有された問題が一覧表示されます -->
+    <div id="publicQuizList"></div>
+</div>
 
                 <div id="card-achievement" class="quest-card achievement-card" onclick="handleCardClick('achievement')">
                     <button class="back-btn" onclick="goBackToHome(event)">← 戻る</button>
