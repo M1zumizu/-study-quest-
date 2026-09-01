@@ -13,10 +13,30 @@ let currentView = 'home';
 let nigateLogs = [];
 let currentRankingType = 'daily';
 
+// ⏱️・📝 実績トラッキング用データ
+let quizCorrectCount = 0;
+let lastFailedQuizId = null;
+let lastStudyDate = null;
+let streakCount = 0;
+
 // 🏷️ カスタムジャンル初期データ（サンプル問題＋指定ジャンル）
 let customGenres = ["サンプル問題", "国語", "数学＆算数", "英語", "理科", "社会", "情報"];
 
-// 🏆 アチーブメントデータ
+// 🏆 アチーブメントマスター定義（全10種）
+const achievementsMaster = [
+    { id: "badge1", name: "最初の一歩", desc: "初めてタイマーを開始する" },
+    { id: "badge2", name: "ランナー誕生", desc: "プレイヤー名を「名無し」から変更する" },
+    { id: "badge3", name: "🌱 再出発", desc: "1日以上空いた後に、もう一度勉強する" },
+    { id: "badge4", name: "🔥 3日間の冒険", desc: "3日連続で学習を記録する" },
+    { id: "badge5", name: "⏱️ 集中モード", desc: "1回のタイマーで30分（1800秒）以上勉強する" },
+    { id: "badge6", name: "クイズ見習い", desc: "復習クイズで累計10問正解する" },
+    { id: "badge7", name: "🧠 リベンジ成功", desc: "前回間違えたクイズ問題に正解する" },
+    { id: "badge8", name: "自作の達人", desc: "新しいカスタムジャンルを1つ追加する" },
+    { id: "badge9", name: "全国デビュー", desc: "設定でランキング参加をONにする" },
+    { id: "badge10", name: "💎 積み重ねの証", desc: "累計1000 EXPを獲得する" }
+];
+
+// 🏆 解放済みアチーブメントステート
 let unlockedAchievements = {};
 
 // ⚙️ 設定データ
@@ -92,6 +112,11 @@ function addExpWithPeriod(amount) {
     localStorage.setItem('monthlyExp', mExp.toString());
 
     totalExp += amount;
+
+    if (totalExp >= 1000) {
+        unlockAchievement('💎 積み重ねの証', 'badge10');
+    }
+
     checkLevelUp();
     saveData();
 }
@@ -108,6 +133,7 @@ function promptAddGenre(event) {
         if (!customGenres.includes(trimmed)) {
             customGenres.push(trimmed);
             updateAllGenreSelects();
+            unlockAchievement('自作の達人', 'badge8');
             saveData();
             alert(`ジャンル「${trimmed}」を追加しました！`);
         } else {
@@ -244,8 +270,8 @@ function showView(viewName) {
 
     updateSidebarActive(viewName);
 
-    if (viewName === 'timer') {
-        unlockAchievement('最初の一歩', 'badge1');
+    if (viewName === 'achievement') {
+        renderAchievements();
     }
 
     if (viewName === 'settings') {
@@ -290,6 +316,8 @@ function startTimer(event) {
     if (event) event.stopPropagation();
     if (timerInterval) return;
 
+    unlockAchievement('最初の一歩', 'badge1');
+
     document.getElementById('startBtn').style.display = 'none';
     document.getElementById('stopBtn').style.display = 'inline-block';
 
@@ -305,6 +333,32 @@ function stopTimer(event) {
     clearInterval(timerInterval);
     timerInterval = null;
 
+    if (seconds >= 1800) {
+        unlockAchievement('⏱️ 集中モード', 'badge5');
+    }
+
+    const todayStr = getDateKeys().daily;
+    if (seconds > 0) {
+        if (lastStudyDate && lastStudyDate !== todayStr) {
+            const lastDate = new Date(lastStudyDate);
+            const todayDate = new Date(todayStr);
+            const diffDays = Math.round((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 1) {
+                streakCount++;
+                if (streakCount >= 3) {
+                    unlockAchievement('🔥 3日間の冒険', 'badge4');
+                }
+            } else if (diffDays > 1) {
+                unlockAchievement('🌱 再出発', 'badge3');
+                streakCount = 1;
+            }
+        } else if (!lastStudyDate) {
+            streakCount = 1;
+        }
+        lastStudyDate = todayStr;
+    }
+
     const earnedExp = seconds * 5;
     if (earnedExp > 0) {
         addExpWithPeriod(earnedExp);
@@ -314,10 +368,6 @@ function stopTimer(event) {
 
     document.getElementById('startBtn').style.display = 'inline-block';
     document.getElementById('stopBtn').style.display = 'none';
-
-    if (seconds > 0) {
-        unlockAchievement('集中マスター', 'badge2');
-    }
 
     seconds = 0;
     updateTimerDisplay();
@@ -331,16 +381,9 @@ function updateTimerDisplay() {
 }
 
 function checkLevelUp() {
-    let levelUp = false;
     while (totalExp >= currentLevel * 100) {
         currentLevel++;
-        levelUp = true;
     }
-
-    if (levelUp) {
-        unlockAchievement('伝説の勇者', 'badge3');
-    }
-
     updateGameDisplay();
 }
 
@@ -390,7 +433,7 @@ function addWeakness(event) {
         id: sharedId,
         genre: genre,
         text: `${qVal} | ${aVal}`,
-        hidden: true // 伏字（非表示）をデフォルトに設定
+        hidden: true
     };
     nigateLogs.unshift(newItem);
 
@@ -403,7 +446,6 @@ function addWeakness(event) {
     };
     activeQuizList.unshift(newQuiz);
 
-    // 🎁 苦手ノート書き込み時のXP加算
     const earnedExp = 15; 
     addExpWithPeriod(earnedExp);
 
@@ -412,8 +454,6 @@ function addWeakness(event) {
 
     qInput.value = "";
     aInput.value = "";
-
-    unlockAchievement('最初の一歩', 'badge1');
 }
 
 function insertWeaknessToList(text, genre = "国語") {
@@ -421,7 +461,7 @@ function insertWeaknessToList(text, genre = "国語") {
         id: Date.now(),
         genre: genre,
         text: text,
-        hidden: true // 自動登録時も伏字をデフォルトに設定
+        hidden: true
     };
     nigateLogs.unshift(newItem);
     renderWeaknessList();
@@ -618,10 +658,22 @@ function submitQuizAnswer(event) {
     if (userAnswer === correctAnswer) {
         resultDisplay.style.color = "var(--green-neon)";
         resultDisplay.innerText = "⭕ 正解！ (+20XP)";
+        
+        quizCorrectCount++;
+        if (quizCorrectCount >= 10) {
+            unlockAchievement('クイズ見習い', 'badge6');
+        }
+
+        if (lastFailedQuizId === currentQuiz.id) {
+            unlockAchievement('🧠 リベンジ成功', 'badge7');
+            lastFailedQuizId = null;
+        }
+
         addExpWithPeriod(20);
     } else {
         resultDisplay.style.color = "var(--pink-neon)";
         resultDisplay.innerText = `❌ 不正解... 正解: 「${currentQuiz.a}」`;
+        lastFailedQuizId = currentQuiz.id;
         insertWeaknessToList(`${currentQuiz.q} | ${currentQuiz.a}`, currentQuiz.genre || "国語");
     }
 
@@ -686,14 +738,11 @@ function deleteCustomQuiz(id, event) {
         return;
     }
 
-    // 復習クイズ一覧から削除
     activeQuizList = activeQuizList.filter(q => q.id !== id);
-
-    // 苦手ノート側（nigateLogs）からも連動して削除
     nigateLogs = nigateLogs.filter(item => (typeof item === 'object' ? item.id : item) !== id);
 
     renderQuizManageList();
-    renderWeaknessList(); // 苦手ノート一覧の表示を再描画
+    renderWeaknessList();
     loadQuizQuestion();
     saveData();
 }
@@ -722,19 +771,55 @@ function renderQuizManageList() {
 }
 
 // ==========================================
-// 🏆 アチーブメント機能
+// 🏆 アチーブメント描画・管理機能
 // ==========================================
+function renderAchievements() {
+    const container = document.getElementById('achievementList') || document.getElementById('achievementContainer');
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    achievementsMaster.forEach(item => {
+        const isUnlocked = unlockedAchievements[item.name] === true;
+        const div = document.createElement('div');
+        div.id = item.id;
+        div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
+        div.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: ${isUnlocked ? 'rgba(74, 222, 128, 0.08)' : 'rgba(255, 255, 255, 0.03)'};
+            border: 1px solid ${isUnlocked ? 'var(--green-neon, #4ade80)' : 'rgba(255, 255, 255, 0.1)'};
+            transition: all 0.3s ease;
+        `;
+
+        div.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <div style="font-weight:bold; font-size:0.95rem; color:${isUnlocked ? '#fff' : '#aaa'}; display:flex; align-items:center; gap:6px;">
+                    <span>${isUnlocked ? '🏆' : '🔒'}</span>
+                    <span>${item.name}</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-sub, #aaa);">
+                    条件: ${item.desc}
+                </div>
+            </div>
+            <div style="font-size:0.75rem; font-weight:bold; padding:2px 8px; border-radius:4px; ${isUnlocked ? 'background:rgba(74,222,128,0.2); color:var(--green-neon, #4ade80);' : 'background:rgba(255,255,255,0.05); color:#777;'}">
+                ${isUnlocked ? '達成！' : '未達成'}
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
 function unlockAchievement(name, badgeId) {
     if (unlockedAchievements[name]) return;
 
     unlockedAchievements[name] = true;
-
-    const badge = document.getElementById(badgeId);
-    if (badge) {
-        badge.classList.add('unlocked');
-    }
-
     saveData();
+    renderAchievements();
 
     if (soundEnabled) {
         playAchievementSound();
@@ -798,7 +883,11 @@ function saveData() {
         rankingEnabled: rankingEnabled,
         soundEnabled: soundEnabled,
         genres: customGenres,
-        quizzes: activeQuizList
+        quizzes: activeQuizList,
+        quizCorrectCount: quizCorrectCount,
+        lastFailedQuizId: lastFailedQuizId,
+        lastStudyDate: lastStudyDate,
+        streakCount: streakCount
     };
 
     try {
@@ -817,6 +906,7 @@ function loadData() {
     if (!savedData) {
         updateGameDisplay();
         renderWeaknessList();
+        renderAchievements();
         updateSettingsDisplay();
         return;
     }
@@ -839,35 +929,17 @@ function loadData() {
             activeQuizList = gameState.quizzes;
         }
 
+        if (gameState.quizCorrectCount !== undefined) quizCorrectCount = gameState.quizCorrectCount;
+        if (gameState.lastFailedQuizId !== undefined) lastFailedQuizId = gameState.lastFailedQuizId;
+        if (gameState.lastStudyDate !== undefined) lastStudyDate = gameState.lastStudyDate;
+        if (gameState.streakCount !== undefined) streakCount = gameState.streakCount;
+
         updateGameDisplay();
         renderWeaknessList();
-        restoreAchievements();
+        renderAchievements();
         updateSettingsDisplay();
     } catch (error) {
         console.error('Study Quest：データ読み込みエラー', error);
-    }
-}
-
-function restoreAchievements() {
-    const achievementMap = {
-        '最初の一歩': 'badge1',
-        '集中マスター': 'badge2',
-        '伝説の勇者': 'badge3'
-    };
-
-    for (const achievementName in achievementMap) {
-        const badgeId = achievementMap[achievementName];
-        const badge = document.getElementById(badgeId);
-        if (badge) badge.classList.remove('unlocked');
-    }
-
-    for (const achievementName in unlockedAchievements) {
-        if (unlockedAchievements[achievementName] !== true) continue;
-        const badgeId = achievementMap[achievementName];
-        if (badgeId) {
-            const badge = document.getElementById(badgeId);
-            if (badge) badge.classList.add('unlocked');
-        }
     }
 }
 
@@ -884,9 +956,14 @@ function savePlayerName(event) {
     if (!input) return;
 
     const value = input.value.trim();
-    playerName = value === '' ? '名無し' : value;
-    input.value = playerName;
+    if (value !== '' && value !== '名無し') {
+        playerName = value;
+        unlockAchievement('ランナー誕生', 'badge2');
+    } else {
+        playerName = '名無し';
+    }
 
+    input.value = playerName;
     saveData();
     alert('ニックネームを保存しました！');
 }
@@ -894,14 +971,16 @@ function savePlayerName(event) {
 function setRankingParticipation(isEnabled, event) {
     if (event) event.stopPropagation();
     rankingEnabled = Boolean(isEnabled);
-    saveData();
-    updateSettingsDisplay();
 
     if (rankingEnabled) {
+        unlockAchievement('全国デビュー', 'badge9');
         alert('ランキングへの参加をONにしました！');
     } else {
         alert('ランキングへの参加をOFFにしました。');
     }
+
+    saveData();
+    updateSettingsDisplay();
 }
 
 function setSoundEnabled(isEnabled, event) {
@@ -945,6 +1024,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadData();
     updateAllGenreSelects();
     loadQuizQuestion();
+    renderAchievements();
     showView('home');
 });
 
@@ -992,22 +1072,18 @@ async function sendScoreToRanking() {
     };
 
     try {
-        // デイリー（本日の獲得XP）
         await setDoc(doc(window.db, `rankings_daily_${keys.daily}`, playerId), {
             ...payloadBase, exp: dailyExp
         }, { merge: true });
 
-        // 週間（今週の獲得XP）
         await setDoc(doc(window.db, `rankings_weekly_${keys.weekly}`, playerId), {
             ...payloadBase, exp: weeklyExp
         }, { merge: true });
 
-        // 月間（今月の獲得XP）
         await setDoc(doc(window.db, `rankings_monthly_${keys.monthly}`, playerId), {
             ...payloadBase, exp: monthlyExp
         }, { merge: true });
 
-        // 累計（通算の合計XP）
         await setDoc(doc(window.db, `rankings_overall`, playerId), {
             ...payloadBase, exp: totalExp
         }, { merge: true });
