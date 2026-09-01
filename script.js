@@ -773,14 +773,37 @@ function renderQuizManageList() {
 // ==========================================
 // 🏆 アチーブメント描画・管理機能
 // ==========================================
+// ==========================================
+// 🏆 アチーブメント描画・管理機能（修正版）
+// ==========================================
 function renderAchievements() {
-    const container = document.getElementById('achievementList') || document.getElementById('achievementContainer');
+    // 描画先コンテナのID表記ゆれ・HTML構造に柔軟に対応
+    const container = document.getElementById('achievementList') || 
+                      document.getElementById('achievementContainer') ||
+                      document.getElementById('badgeContainer') ||
+                      document.querySelector('#card-achievement');
+
     if (!container) return;
 
-    container.innerHTML = "";
+    // カードタイトル等を保護しつつ描画領域を確保
+    let listArea = container.querySelector('.achievement-list-inner');
+    if (!listArea) {
+        if (container.id === 'card-achievement') {
+            listArea = document.createElement('div');
+            listArea.className = 'achievement-list-inner';
+            listArea.style.marginTop = '12px';
+            container.appendChild(listArea);
+        } else {
+            listArea = container;
+        }
+    }
+
+    listArea.innerHTML = "";
 
     achievementsMaster.forEach(item => {
-        const isUnlocked = unlockedAchievements[item.name] === true;
+        // ID(badge1等) と 名前("最初の一歩"等) の両方で獲得状況を判定
+        const isUnlocked = unlockedAchievements[item.id] === true || unlockedAchievements[item.name] === true;
+
         const div = document.createElement('div');
         div.id = item.id;
         div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
@@ -791,7 +814,7 @@ function renderAchievements() {
             padding: 10px 14px;
             margin-bottom: 8px;
             border-radius: 8px;
-            background: ${isUnlocked ? 'rgba(74, 222, 128, 0.08)' : 'rgba(255, 255, 255, 0.03)'};
+            background: ${isUnlocked ? 'rgba(74, 222, 128, 0.12)' : 'rgba(255, 255, 255, 0.03)'};
             border: 1px solid ${isUnlocked ? 'var(--green-neon, #4ade80)' : 'rgba(255, 255, 255, 0.1)'};
             transition: all 0.3s ease;
         `;
@@ -810,8 +833,35 @@ function renderAchievements() {
                 ${isUnlocked ? '達成！' : '未達成'}
             </div>
         `;
-        container.appendChild(div);
+        listArea.appendChild(div);
     });
+}
+
+function unlockAchievement(name, badgeId) {
+    // 重複解放防止チェック（IDと名前の両方を検証）
+    if ((badgeId && unlockedAchievements[badgeId]) || unlockedAchievements[name]) return;
+
+    // 保存用にIDと名前の両方に解放フラグをセット
+    if (badgeId) unlockedAchievements[badgeId] = true;
+    if (name) unlockedAchievements[name] = true;
+
+    saveData();
+    renderAchievements();
+
+    if (soundEnabled) {
+        playAchievementSound();
+    }
+
+    const toast = document.getElementById('steamToast');
+    const nameDisplay = document.getElementById('steamBadgeName');
+
+    if (toast && nameDisplay) {
+        nameDisplay.innerText = name;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 4000);
+    }
 }
 
 function unlockAchievement(name, badgeId) {
